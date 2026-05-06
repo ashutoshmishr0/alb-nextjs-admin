@@ -7,7 +7,14 @@ import { NextResponse } from "next/server";
 ====================== */
 function normalizeTitle(title: any): string {
   if (!title || typeof title !== "string") return "";
-  return title.trim().toLowerCase();
+
+  return title
+    .toLowerCase()
+    .replace(/\s+/g, " ")        // multiple spaces → single
+    .replace(/[()]/g, "")       // remove brackets
+    .replace(/carats?/g, "ct")  // normalize units
+    .replace(/[^a-z0-9 ]/g, "") // remove special chars
+    .trim();
 }
 
 function parsePrice(price: string | number | null | undefined): number {
@@ -36,7 +43,7 @@ export async function GET() {
     // Fetch both APIs in parallel
     const [shopifyRes, brahmaRes] = await Promise.all([
       fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/shopify/products/by-vendor?vendor=BrahmaGems`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/shopify/products/by-vendor?vendor=Brahmagems`,
         { cache: "no-store" }
       ),
       fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/brahmagems`, {

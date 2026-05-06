@@ -631,43 +631,47 @@ setProducts(
   /* ======================
      🆕 BULK PRICE CALCULATOR
   ====================== */
-  function applyBulkPrice() {
-    const input = bulkPriceInput.trim();
-    if (!input) return;
+ function applyBulkPrice() {
+  const input = bulkPriceInput.trim().replace(/\s+/g, "");
+  if (!input) return;
 
-    setProducts((prevProducts) =>
-      prevProducts.map((product) => {
-        let newPrice = product.basePrice;
+  // Tokenize formula into steps: 2x, +10%, -20%, +500, -1000, 1.5x, etc.
+  const tokenRegex = /([+-]?(?:\d+\.?\d*x|\d+\.?\d*%|\d+))/gi;
+  const tokens = input.match(tokenRegex);
 
-        // Check if it's a multiplier (2x, 3x, 1.5x, etc.)
-        const multiplierMatch = input.match(/^(\d+\.?\d*)x$/i);
-        if (multiplierMatch) {
-          const multiplier = parseFloat(multiplierMatch[1]);
-          newPrice = Math.round(product.basePrice * multiplier);
+  if (!tokens) return;
+
+  setProducts((prevProducts) =>
+    prevProducts.map((product) => {
+      let price = product.basePrice;
+
+      for (const token of tokens) {
+        const clean = token.replace(/[()]/g, "");
+        const sign = clean.startsWith("-") ? -1 : 1;
+        const abs = clean.replace(/^[+-]/, "");
+
+        if (/^\d+\.?\d*x$/i.test(abs)) {
+          // Multiplier: 2x, 1.5x
+          price = price * parseFloat(abs);
+        } else if (/^\d+\.?\d*%$/.test(abs)) {
+          // Percentage: +10%, -20%
+          price = price + sign * price * (parseFloat(abs) / 100);
+        } else if (/^\d+$/.test(abs)) {
+          // Fixed amount: +5000, -1000
+          price = price + sign * parseInt(abs);
         }
-        // Check if it's a percentage (10%, 15%, -5%, etc.)
-        else if (input.match(/^-?\d+\.?\d*%$/)) {
-          const percentage = parseFloat(input.replace("%", ""));
-          newPrice = Math.round(product.basePrice * (1 + percentage / 100));
-        }
-        // Check if it's a fixed amount (+1000, -500, etc.)
-        else if (input.match(/^[+-]\d+$/)) {
-          const amount = parseInt(input);
-          newPrice = product.basePrice + amount;
-        }
+      }
 
-        return {
-          ...product,
-          sellingPrice: Math.max(0, newPrice), 
-            isEdited: true, // 👈 bulk = sab edited
-// Prevent negative prices
-        };
-      })
-    );
+      return {
+        ...product,
+        sellingPrice: Math.max(0, Math.round(price)),
+        isEdited: true,
+      };
+    })
+  );
 
-    // Clear input after applying
-    setBulkPriceInput("");
-  }
+  setBulkPriceInput("");
+}
 
   /* ======================
      SYNC BUTTON
@@ -755,12 +759,13 @@ const newProducts = products.filter(
     setErrorMessage("");
 
     try {
-      const existing = products.filter(
+    const existing = products.filter(
   (p) =>
     p.status === "EXISTS" &&
-    p.isEdited &&
+    p.isEdited &&                          // 👈 yahi missing tha
     p.shopifyProductId &&
-    p.sellingPrice !== null
+    p.sellingPrice !== null &&
+    p.sellingPrice !== p.shopifyPrice      // 👈 extra safety: actual change
 );
 
 
