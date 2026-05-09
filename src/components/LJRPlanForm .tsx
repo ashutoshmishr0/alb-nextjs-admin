@@ -418,34 +418,6 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 pt-3 border-t border-green-200">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Add-on Price (₹) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={form.addons.astroConsultation.price}
-                      onWheel={(e) => e.currentTarget.blur()}
-                      onChange={(e) => setForm(prev => ({
-                        ...prev,
-                        addons: {
-                          ...prev.addons,
-                          astroConsultation: {
-                            ...prev.addons.astroConsultation,
-                            price: e.target.value === '' ? '' : Number(e.target.value)
-                          }
-                        }
-                      }))}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                        errors.astroPrice ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="e.g. 904"
-                      min="0"
-                    />
-                    {errors.astroPrice && (
-                      <p className="text-red-500 text-xs mt-1">{errors.astroPrice}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
                       Original Price (₹) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -470,6 +442,34 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                     />
                     {errors.astroPriceOriginal && (
                       <p className="text-red-500 text-xs mt-1">{errors.astroPriceOriginal}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Final Price (₹) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={form.addons.astroConsultation.price}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      onChange={(e) => setForm(prev => ({
+                        ...prev,
+                        addons: {
+                          ...prev.addons,
+                          astroConsultation: {
+                            ...prev.addons.astroConsultation,
+                            price: e.target.value === '' ? '' : Number(e.target.value)
+                          }
+                        }
+                      }))}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                        errors.astroPrice ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="e.g. 904"
+                      min="0"
+                    />
+                    {errors.astroPrice && (
+                      <p className="text-red-500 text-xs mt-1">{errors.astroPrice}</p>
                     )}
                   </div>
                 </div>
