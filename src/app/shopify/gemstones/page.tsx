@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import moment from "moment";
 import {
   Dialog, DialogContent, DialogTitle, IconButton,
-  Chip, Tooltip, LinearProgress
+  Chip, LinearProgress
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { TableColumn } from "react-data-table-component";
@@ -62,13 +62,11 @@ const ShopifyOrdersPage: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Filters
   const [statusFilter, setStatusFilter] = useState("");
   const [gemstoneFilter, setGemstoneFilter] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Upload Modal
   const [uploadModal, setUploadModal] = useState<UploadModalState>({
     open: false, order: null, uploading: false, progress: 0, driveLink: null
   });
@@ -121,7 +119,6 @@ const ShopifyOrdersPage: React.FC = () => {
       formData.append("video", selectedFile);
       formData.append("orderId", uploadModal.order._id);
 
-      // Fake progress since axios progress doesn't work easily with fetch
       const progressInterval = setInterval(() => {
         setUploadModal(prev => ({
           ...prev,
@@ -140,9 +137,14 @@ const ShopifyOrdersPage: React.FC = () => {
 
       const data = await res.json();
 
-      setUploadModal(prev => ({ ...prev, uploading: false, progress: 100, driveLink: data.drive_link }));
+      setUploadModal(prev => ({
+        ...prev,
+        uploading: false,
+        progress: 100,
+        driveLink: data.drive_link,
+      }));
 
-      // Refresh table
+      setSelectedFile(null);
       fetchOrders();
 
       Swal.fire({
@@ -236,13 +238,13 @@ const ShopifyOrdersPage: React.FC = () => {
       cell: (row) => (
         <div className="flex flex-col gap-1">
           {row.is_gemstone_order && (
-            <Chip label="💎 Gemstone" size="small" color="secondary" />
+            <Chip label="Gemstone" size="small" color="secondary" />
           )}
           {row.consultation_matched && (
-            <Chip label="📋 Consultation" size="small" color="info" />
+            <Chip label="Consultation" size="small" color="info" />
           )}
           {!row.is_gemstone_order && !row.consultation_matched && (
-            <Chip label="🛍️ Product" size="small" variant="outlined" />
+            <Chip label="Product" size="small" variant="outlined" />
           )}
         </div>
       ),
@@ -265,20 +267,30 @@ const ShopifyOrdersPage: React.FC = () => {
       width: "120px",
     },
     {
-      name: "Drive Link",
+      name: "Video",
       cell: (row) => row.drive_link ? (
         <a
           href={row.drive_link}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 text-xs underline"
+          className="text-blue-600 hover:text-blue-800 transition-colors"
+          title="View video"
         >
-          View Video
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
         </a>
       ) : (
-        <span className="text-gray-400 text-xs">Not uploaded</span>
+        <span className="text-gray-300">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+            <line x1="1" y1="1" x2="23" y2="23" />
+          </svg>
+        </span>
       ),
-      width: "110px",
+      width: "80px",
     },
     {
       name: "Date",
@@ -287,15 +299,27 @@ const ShopifyOrdersPage: React.FC = () => {
     },
     {
       name: "Action",
-      cell: (row) => (
+      cell: (row) => row.drive_link ? (
+        <div className="flex items-center gap-1 border border-green-500 text-green-600 text-xs font-medium px-2.5 py-1 rounded-full cursor-default select-none">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Sent
+        </div>
+      ) : (
         <button
           onClick={() => openUploadModal(row)}
-          className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-md transition-colors"
+          className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 transition-colors"
+          title="Send video"
         >
-          📤 Send
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+          <span className="text-xs font-medium">Send</span>
         </button>
       ),
-      width: "100px",
+      width: "110px",
     },
   ], []);
 
@@ -303,7 +327,6 @@ const ShopifyOrdersPage: React.FC = () => {
     <>
       {/* Filters Bar */}
       <div className="flex flex-wrap gap-3 px-4 pt-4 pb-2 bg-white border-b">
-        {/* Search */}
         <input
           type="text"
           placeholder="Search name / email / phone..."
@@ -312,7 +335,6 @@ const ShopifyOrdersPage: React.FC = () => {
           className="border rounded-md px-3 py-1.5 text-sm w-60 focus:outline-none focus:ring-2 focus:ring-indigo-300"
         />
 
-        {/* Status Filter */}
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -324,18 +346,16 @@ const ShopifyOrdersPage: React.FC = () => {
           <option value="Initiated">Initiated</option>
         </select>
 
-        {/* Gemstone Filter */}
         <select
           value={gemstoneFilter}
           onChange={(e) => setGemstoneFilter(e.target.value)}
           className="border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
         >
           <option value="">All Types</option>
-          <option value="true">💎 Gemstone Only</option>
-          <option value="false">🛍️ Non-Gemstone</option>
+          <option value="true">Gemstone Only</option>
+          <option value="false">Non-Gemstone</option>
         </select>
 
-        {/* Date Range */}
         <input
           type="date"
           value={startDate}
@@ -349,7 +369,6 @@ const ShopifyOrdersPage: React.FC = () => {
           className="border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
         />
 
-        {/* Clear filters */}
         {(statusFilter || gemstoneFilter || startDate || endDate) && (
           <button
             onClick={() => { setStatusFilter(""); setGemstoneFilter(""); setStartDate(""); setEndDate(""); }}
@@ -367,13 +386,13 @@ const ShopifyOrdersPage: React.FC = () => {
         isLoading={loading}
       />
 
-      {/* Upload MP4 Modal */}
+      {/* Upload Modal */}
       <Dialog open={uploadModal.open} onClose={closeUploadModal} maxWidth="sm" fullWidth>
         <DialogTitle>
           <div className="flex justify-between items-center">
-            <span>📤 Upload & Send Video</span>
+            <span className="text-base font-semibold">Upload Video</span>
             <IconButton onClick={closeUploadModal} size="small" disabled={uploadModal.uploading}>
-              <CloseIcon />
+              <CloseIcon fontSize="small" />
             </IconButton>
           </div>
         </DialogTitle>
@@ -392,24 +411,10 @@ const ShopifyOrdersPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Existing Drive Link */}
-              {uploadModal.driveLink && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
-                    <div className="font-semibold text-green-700 mb-1">✅ Drive Link</div>
-                    <a href={uploadModal.driveLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline break-all text-xs"
-                    >
-                    {uploadModal.driveLink}
-                    </a>
-                </div>
-                )}
-
               {/* File Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {uploadModal.driveLink ? "Replace MP4 Video" : "Upload MP4 Video"}
+                  {uploadModal.driveLink ? "Replace MP4 Video" : "Select MP4 Video"}
                 </label>
                 <input
                   type="file"
@@ -435,14 +440,23 @@ const ShopifyOrdersPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Upload Button */}
-              <button
-                onClick={handleUpload}
-                disabled={!selectedFile || uploadModal.uploading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
-              >
-                {uploadModal.uploading ? "Uploading..." : "Upload to Drive & Send Link"}
-              </button>
+              {/* Success state after upload */}
+              {!uploadModal.uploading && uploadModal.progress === 100 && (
+                <p className="text-sm text-green-600 font-medium text-center">
+                  Uploaded successfully
+                </p>
+              )}
+
+              {/* Upload Button — hidden after successful upload */}
+              {uploadModal.progress !== 100 && (
+                <button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || uploadModal.uploading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
+                >
+                  {uploadModal.uploading ? "Uploading..." : "Upload to Drive & Send Link"}
+                </button>
+              )}
 
             </div>
           )}
