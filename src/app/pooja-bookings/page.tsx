@@ -515,8 +515,7 @@ const PujaBookingsPage = () => {
               </div>
             </div>
 
-            {/* Customer Account Info */}
-            <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
+            {/* <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
               <h4 className="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200 flex items-center gap-2">
                 <User className="w-4 h-4 text-red-600" />
                 Customer Account
@@ -527,7 +526,7 @@ const PujaBookingsPage = () => {
                   <span className="text-xs font-medium text-gray-900 font-mono">{data.customerId?._id}</span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
