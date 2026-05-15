@@ -80,7 +80,11 @@ export async function GET() {
     });
 
     console.log(`✅ Shopify map size: ${shopifyMap.size}`);
-
+const brahmaKeys = new Set(
+  (brahmaData.products ?? []).map((p: any) =>
+    normalizeTitle(p.product_name)
+  )
+);
     // Map and compare products
     const products = (brahmaData.products ?? []).map((brahmaProduct: any) => {
       const title = brahmaProduct.product_name;
@@ -95,9 +99,13 @@ export async function GET() {
           : parseFloat(String(shopifyMatch.price));
         
         // Validate
-        if (isNaN(shopifyPrice) || shopifyPrice <= 0) {
-          shopifyPrice = null;
-        }
+     if (
+  shopifyPrice === null ||
+  isNaN(Number(shopifyPrice)) ||
+  Number(shopifyPrice) <= 0
+) {
+  shopifyPrice = null;
+}
         
         console.log(`💰 ${title}: Shopify price = ₹${shopifyPrice}`);
       }
@@ -110,6 +118,8 @@ export async function GET() {
   title,
   basePrice,
   shopifyPrice,
+  shopifyStatus:
+  shopifyMatch?.shopifyStatus ?? null,
   images: [
     ...(brahmaProduct.image_url ? [brahmaProduct.image_url] : []),
     ...(Array.isArray(brahmaProduct.images) ? brahmaProduct.images : []),
@@ -133,21 +143,96 @@ export async function GET() {
   shopifyProductId: shopifyMatch?.productId ?? null,
 };
     });
+const missingProducts = (shopifyData.products ?? [])
+  .filter((shopifyProduct: any) => {
+    const key = normalizeTitle(shopifyProduct.title);
 
-    const stats = {
-      total: products.length,
-      new: products.filter((p) => p.status === "NEW").length,
-      existing: products.filter((p) => p.status === "EXISTS").length,
-      withShopifyPrice: products.filter(p => p.shopifyPrice !== null && p.shopifyPrice > 0).length,
+    return !brahmaKeys.has(key);
+  })
+  .map((shopifyProduct: any) => ({
+    id: shopifyProduct.productId,
+    title: shopifyProduct.title,
+
+    basePrice: 0,
+
+    shopifyPrice:
+      typeof shopifyProduct.price === "number"
+        ? shopifyProduct.price
+        : parseFloat(shopifyProduct.price),
+
+    images: [],
+    videos: [],
+    certificateUrl: null,
+
+    status: "MISSING_FROM_API" as const,
+shopifyStatus:
+  shopifyProduct.shopifyStatus ?? null,
+    shopifyProductId: shopifyProduct.productId,
+  }));  
+   
+
+  
+const finalProducts = [
+  ...products,
+  ...missingProducts,
+];
+finalProducts.sort((a: any, b: any) => {
+  function getPriority(p: any) {
+    // NEW
+    if (p.status === "NEW") {
+      return 0;
+    }
+
+    // EXISTS + DRAFT
+    if (
+      p.status === "EXISTS" &&
+      p.shopifyStatus === "DRAFT"
+    ) {
+      return 1;
+    }
+
+    // EXISTS + ACTIVE
+    if (
+      p.status === "EXISTS" &&
+      p.shopifyStatus === "ACTIVE"
+    ) {
+      return 2;
+    }
+
+    // MISSING
+    if (
+      p.status ===
+      "MISSING_FROM_API"
+    ) {
+      return 3;
+    }
+
+    return 999;
+  }
+
+  return (
+    getPriority(a) -
+    getPriority(b)
+  );
+});
+ const stats = {
+total: finalProducts.length,
+      new: products.filter((p:any) => p.status === "NEW").length,
+      missing: missingProducts.length,
+      existing: products.filter((p:any) => p.status === "EXISTS").length,
+      draft: finalProducts.filter(
+  (p: any) =>
+    p.shopifyStatus === "DRAFT"
+).length,
+      withShopifyPrice: products.filter((p:any) => p.shopifyPrice !== null && p.shopifyPrice > 0).length,
     };
-
-    console.log("\n✅ Products mapped:", stats.total);
+  console.log("\n✅ Products mapped:", stats.total);
     console.log("🆕 New:", stats.new);
     console.log("♻️ Existing:", stats.existing);
     console.log("💰 With Shopify prices:", stats.withShopifyPrice);
-
-    return NextResponse.json({ products });
-  } catch (error) {
+return NextResponse.json({
+  products: finalProducts,
+});  } catch (error) {
     console.error("❌ Compare data error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

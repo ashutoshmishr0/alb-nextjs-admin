@@ -1,5 +1,6 @@
 
 
+
 // "use client";
 
 // import { useEffect, useState } from "react";
@@ -7,67 +8,123 @@
 // /* ======================
 //    TYPES
 // ====================== */
+// type ProductStatus =
+//   | "NEW"
+//   | "EXISTS"
+//   | "MISSING_FROM_API";
+
 // type Product = {
 //   id: string;
 //   title: string;
 //   basePrice: number;
 //   shopifyPrice: number | null;
-// sellingPrice: number | null;   // 👈 number → number | null
-//   isEdited?: boolean;        images: string[];
+//   sellingPrice: number | null;
+//   isEdited?: boolean;
+
+//   images: string[];
 //   videos: string[];
-//   certificateUrl?: string;
-//   status: "NEW" | "EXISTS";
+
+//   certificateUrl?: string | null;
+
+//   status: ProductStatus;
+
 //   shopifyProductId?: string;
+// shopifyStatus?:
+//   | "ACTIVE"
+//   | "DRAFT"
+//   | "ARCHIVED"
+//   | null;
+//   category_name?: string | null;
+//   color?: string | null;
+//   origin?: string | null;
+//   shape?: string | null;
+//   transparency?: string | null;
+//   treatment?: string | null;
+//   weight_in_carat?: string | null;
+//   dimension?: string | null;
+//   certifications_name?: string | null;
+//   certifications_number?: string | null;
 // };
 
-// type SyncStatus = "idle" | "syncing" | "success" | "error";
+// type SyncStatus =
+//   | "idle"
+//   | "syncing"
+//   | "success"
+//   | "error";
 
 // /* ======================
 //    PAGE
 // ====================== */
 // export default function CompareProductsPage() {
-//   const [products, setProducts] = useState<Product[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [showModal, setShowModal] = useState(false);
-//   const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
-//   const [syncProgress, setSyncProgress] = useState(0);
-//   const [errorMessage, setErrorMessage] = useState<string>("");
-  
-//   // 🆕 Bulk price calculator
-//   const [bulkPriceInput, setBulkPriceInput] = useState<string>("");
+//   const [products, setProducts] = useState<
+//     Product[]
+//   >([]);
+
+//   const [filter, setFilter] = useState<
+//     "ALL" | ProductStatus
+//   >("ALL");
+
+//   const [excludeKeywords, setExcludeKeywords] =
+//     useState("");
+
+//   const [loading, setLoading] =
+//     useState(true);
+
+//   const [showModal, setShowModal] =
+//     useState(false);
+
+//   const [syncStatus, setSyncStatus] =
+//     useState<SyncStatus>("idle");
+
+//   const [syncProgress, setSyncProgress] =
+//     useState(0);
+
+//   const [errorMessage, setErrorMessage] =
+//     useState("");
+
+//   const [bulkPriceInput, setBulkPriceInput] =
+//     useState("");
 
 //   /* ======================
 //      FETCH DATA
 //   ====================== */
 //   useEffect(() => {
 //     loadProducts();
-    
 //   }, []);
 
 //   async function loadProducts() {
 //     setLoading(true);
 //     setErrorMessage("");
-    
+
 //     try {
-//       const res = await fetch("/api/compare-data");
-      
+//       const res = await fetch(
+//         "/api/compare-data"
+//       );
+
 //       if (!res.ok) {
-//         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+//         throw new Error(
+//           `HTTP ${res.status}`
+//         );
 //       }
-      
+
 //       const data = await res.json();
-//       console.log("📦 Loaded products:", data.products);
-// setProducts(
-//   (data.products ?? []).map((p: Product) => ({
-//     ...p,
-//     sellingPrice: null,
-//     isEdited: false,
-//   }))
-// );
+
+//       setProducts(
+//         (data.products ?? []).map(
+//           (p: Product) => ({
+//             ...p,
+//             sellingPrice: null,
+//             isEdited: false,
+//           })
+//         )
+//       );
 //     } catch (error) {
-//       console.error("Failed to load compare data:", error);
+//       console.error(error);
+
 //       setErrorMessage(
-//         error instanceof Error ? error.message : "Failed to load products"
+//         error instanceof Error
+//           ? error.message
+//           : "Failed to load"
 //       );
 //     } finally {
 //       setLoading(false);
@@ -75,460 +132,744 @@
 //   }
 
 //   /* ======================
-//      🆕 BULK PRICE CALCULATOR
+//      FILTERED PRODUCTS
+//   ====================== */
+//   const excludedKeywords =
+//     excludeKeywords
+//       .toLowerCase()
+//       .split(",")
+//       .map((x) => x.trim())
+//       .filter(Boolean);
+
+//   const filteredProducts = products
+//     .filter((p) => {
+//       if (filter === "ALL") {
+//         return true;
+//       }
+
+//       return p.status === filter;
+//     })
+//     .filter((p) => {
+//       const title =
+//         p.title.toLowerCase();
+
+//       return !excludedKeywords.some(
+//         (k) => title.includes(k)
+//       );
+//     });
+
+//   /* ======================
+//      BULK PRICE
 //   ====================== */
 //   function applyBulkPrice() {
-//     const input = bulkPriceInput.trim();
+//     const input = bulkPriceInput
+//       .trim()
+//       .replace(/\s+/g, "");
+
 //     if (!input) return;
+
+//     const tokenRegex =
+//       /([+-]?(?:\d+\.?\d*x|\d+\.?\d*%|\d+))/gi;
+
+//     const tokens =
+//       input.match(tokenRegex);
+
+//     if (!tokens) return;
 
 //     setProducts((prevProducts) =>
 //       prevProducts.map((product) => {
-//         let newPrice = product.basePrice;
+//         let price = product.basePrice;
 
-//         // Check if it's a multiplier (2x, 3x, 1.5x, etc.)
-//         const multiplierMatch = input.match(/^(\d+\.?\d*)x$/i);
-//         if (multiplierMatch) {
-//           const multiplier = parseFloat(multiplierMatch[1]);
-//           newPrice = Math.round(product.basePrice * multiplier);
-//         }
-//         // Check if it's a percentage (10%, 15%, -5%, etc.)
-//         else if (input.match(/^-?\d+\.?\d*%$/)) {
-//           const percentage = parseFloat(input.replace("%", ""));
-//           newPrice = Math.round(product.basePrice * (1 + percentage / 100));
-//         }
-//         // Check if it's a fixed amount (+1000, -500, etc.)
-//         else if (input.match(/^[+-]\d+$/)) {
-//           const amount = parseInt(input);
-//           newPrice = product.basePrice + amount;
+//         for (const token of tokens) {
+//           const clean =
+//             token.replace(/[()]/g, "");
+
+//           const sign =
+//             clean.startsWith("-")
+//               ? -1
+//               : 1;
+
+//           const abs =
+//             clean.replace(/^[+-]/, "");
+
+//           if (
+//             /^\d+\.?\d*x$/i.test(abs)
+//           ) {
+//             price =
+//               price *
+//               parseFloat(abs);
+//           } else if (
+//             /^\d+\.?\d*%$/.test(abs)
+//           ) {
+//             price =
+//               price +
+//               sign *
+//                 price *
+//                 (parseFloat(abs) /
+//                   100);
+//           } else if (
+//             /^\d+$/.test(abs)
+//           ) {
+//             price =
+//               price +
+//               sign *
+//                 parseInt(abs);
+//           }
 //         }
 
 //         return {
 //           ...product,
-//           sellingPrice: Math.max(0, newPrice), 
-//             isEdited: true, // 👈 bulk = sab edited
-// // Prevent negative prices
+//           sellingPrice: Math.max(
+//             0,
+//             Math.round(price)
+//           ),
+//           isEdited: true,
 //         };
 //       })
 //     );
 
-//     // Clear input after applying
 //     setBulkPriceInput("");
 //   }
 
 //   /* ======================
-//      SYNC BUTTON
+//      SYNC
 //   ====================== */
 //   async function handleSync() {
-//     setSyncStatus("syncing");
-//     setSyncProgress(0);
-//     setErrorMessage("");
-
 //     try {
-//       // 1️⃣ ADD ALL NEW PRODUCTS
-// const newProducts = products.filter(
-//   (p) => p.status === "NEW" && p.isEdited && p.sellingPrice !== null
-// );
+//       setSyncStatus("syncing");
+//       setSyncProgress(0);
 
-//       if (newProducts.length > 0) {
-//         for (let i = 0; i < newProducts.length; i++) {
-//           const p = newProducts[i];
+//       /* ======================
+//          NEW PRODUCTS
+//       ====================== */
+//       const newProducts =
+//         filteredProducts.filter(
+//           (p) =>
+//             p.status === "NEW" &&
+//             p.isEdited &&
+//             p.sellingPrice !== null
+//         );
 
-//           const res = await fetch("/api/shopify/create-product", {
+//       for (
+//         let i = 0;
+//         i < newProducts.length;
+//         i++
+//       ) {
+//         const p = newProducts[i];
+
+//         const res = await fetch(
+//           "/api/shopify/create-product",
+//           {
 //             method: "POST",
-//             headers: { "Content-Type": "application/json" },
+
+//             headers: {
+//               "Content-Type":
+//                 "application/json",
+//             },
+
 //             body: JSON.stringify({
-//               title: p.title,
-//               price: p.sellingPrice,
-//               compareAtPrice: p.basePrice,
-//               images: p.images,
-//               videos: p.videos,
-//               certificateUrl: p.certificateUrl,
+//               product_name:
+//                 p.title,
+
+//               price:
+//                 p.sellingPrice,
+
+//               mrp: p.basePrice,
+
+//               image_url:
+//                 p.images[0] ??
+//                 null,
+
+//               images:
+//                 p.images.slice(1),
+
+//               video_url:
+//                 p.videos[0] ??
+//                 null,
+
+//               certificate_url:
+//                 p.certificateUrl ??
+//                 null,
+
+//               category_name:
+//                 p.category_name,
+
+//               color: p.color,
+
+//               origin: p.origin,
+
+//               shape: p.shape,
+
+//               transparency:
+//                 p.transparency,
+
+//               treatment:
+//                 p.treatment,
+
+//               weight_in_carat:
+//                 p.weight_in_carat,
+
+//               dimension:
+//                 p.dimension,
+
+//               certifications_name:
+//                 p.certifications_name,
+
+//               certifications_number:
+//                 p.certifications_number,
 //             }),
-//           });
-
-//           if (!res.ok) {
-//             const error = await res.json();
-//             throw new Error(
-//               `Failed to create "${p.title}": ${JSON.stringify(error)}`
-//             );
 //           }
+//         );
 
-//           setSyncProgress(((i + 1) / newProducts.length) * 100);
+//         if (!res.ok) {
+//           throw new Error(
+//             `Failed to create ${p.title}`
+//           );
 //         }
+
+//         setSyncProgress(
+//           ((i + 1) /
+//             newProducts.length) *
+//             100
+//         );
 //       }
 
-//       // 2️⃣ SHOW MODAL FOR EXISTING
-//       const existingProducts = products.filter((p) => p.status === "EXISTS");
-      
-//       if (existingProducts.length > 0) {
+//       /* ======================
+//          DRAFT MISSING
+//       ====================== */
+//       const missingProducts =
+//         filteredProducts.filter(
+//           (p) =>
+//             p.status ===
+//             "MISSING_FROM_API"
+//         );
+
+//       for (const p of missingProducts) {
+//         await fetch(
+//           "/api/shopify/draft-products",
+//           {
+//             method: "POST",
+
+//             headers: {
+//               "Content-Type":
+//                 "application/json",
+//             },
+
+//             body: JSON.stringify({
+//               productId:
+//                 p.shopifyProductId,
+//             }),
+//           }
+//         );
+//       }
+
+//       /* ======================
+//          EXISTING
+//       ====================== */
+//       const existingProducts =
+//         filteredProducts.filter(
+//           (p) =>
+//             p.status ===
+//             "EXISTS"
+//         );
+
+//       if (
+//         existingProducts.length > 0
+//       ) {
 //         setShowModal(true);
 //         setSyncStatus("idle");
 //       } else {
 //         setSyncStatus("success");
+
 //         setTimeout(() => {
 //           setSyncStatus("idle");
-//           loadProducts(); // Refresh data
+//           loadProducts();
 //         }, 2000);
 //       }
 //     } catch (error) {
-//       console.error("Sync error:", error);
+//       console.error(error);
+
 //       setErrorMessage(
-//         error instanceof Error ? error.message : "Sync failed"
+//         error instanceof Error
+//           ? error.message
+//           : "Sync failed"
 //       );
+
 //       setSyncStatus("error");
 //     }
 //   }
 
 //   /* ======================
-//      UPDATE EXISTING PRICES
+//      UPDATE EXISTING
 //   ====================== */
 //   async function updateExistingPrices() {
-//     setSyncStatus("syncing");
-//     setSyncProgress(0);
-//     setErrorMessage("");
-
 //     try {
-//       const existing = products.filter(
-//   (p) =>
-//     p.status === "EXISTS" &&
-//     p.isEdited &&
-//     p.shopifyProductId &&
-//     p.sellingPrice !== null
-// );
+//       setSyncStatus("syncing");
 
+//       const existing =
+//         filteredProducts.filter(
+//           (p) =>
+//             p.status ===
+//               "EXISTS" &&
+//             p.isEdited &&
+//             p.shopifyProductId &&
+//             p.sellingPrice !==
+//               null &&
+//             p.sellingPrice !==
+//               p.shopifyPrice
+//         );
 
-//       for (let i = 0; i < existing.length; i++) {
+//       for (
+//         let i = 0;
+//         i < existing.length;
+//         i++
+//       ) {
 //         const p = existing[i];
 
-//         const res = await fetch("/api/shopify/update-price", {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({
-//             productId: p.shopifyProductId,
-//             price: p.sellingPrice,
-//           }),
-//         });
+//         const res = await fetch(
+//           "/api/shopify/update-price",
+//           {
+//             method: "POST",
+
+//             headers: {
+//               "Content-Type":
+//                 "application/json",
+//             },
+
+//             body: JSON.stringify({
+//               productId:
+//                 p.shopifyProductId,
+
+//               price:
+//                 p.sellingPrice,
+//             }),
+//           }
+//         );
 
 //         if (!res.ok) {
-//           const error = await res.json();
 //           throw new Error(
-//             `Failed to update "${p.title}": ${JSON.stringify(error)}`
+//             `Failed to update ${p.title}`
 //           );
 //         }
 
-//         setSyncProgress(((i + 1) / existing.length) * 100);
+//         setSyncProgress(
+//           ((i + 1) /
+//             existing.length) *
+//             100
+//         );
 //       }
 
 //       setShowModal(false);
+
 //       setSyncStatus("success");
-      
+
 //       setTimeout(() => {
 //         setSyncStatus("idle");
-//         loadProducts(); // Refresh data
+//         loadProducts();
 //       }, 2000);
 //     } catch (error) {
-//       console.error("Update error:", error);
+//       console.error(error);
+
 //       setErrorMessage(
-//         error instanceof Error ? error.message : "Update failed"
+//         error instanceof Error
+//           ? error.message
+//           : "Update failed"
 //       );
+
 //       setSyncStatus("error");
 //     }
 //   }
 
 //   /* ======================
-//      COMPUTED VALUES
+//      STATS
 //   ====================== */
-//   const newCount = products.filter((p) => p.status === "NEW").length;
-//   const existingCount = products.filter((p) => p.status === "EXISTS").length;
-//  const priceChanges = products.filter(
-//   (p) =>
-//     p.status === "EXISTS" &&
-//     p.sellingPrice !== null &&          // 👈 MOST IMPORTANT
-//     p.shopifyPrice !== null &&
-//     p.sellingPrice !== p.shopifyPrice
-// ).length;
+//   const newCount =
+//     products.filter(
+//       (p) => p.status === "NEW"
+//     ).length;
+
+//   const existingCount =
+//     products.filter(
+//       (p) => p.status === "EXISTS"
+//     ).length;
+
+//   const missingCount =
+//     products.filter(
+//       (p) =>
+//         p.status ===
+//         "MISSING_FROM_API"
+//     ).length;
+
+//   const priceChanges =
+//     products.filter(
+//       (p) =>
+//         p.status === "EXISTS" &&
+//         p.sellingPrice !== null &&
+//         p.shopifyPrice !== null &&
+//         p.sellingPrice !==
+//           p.shopifyPrice
+//     ).length;
 
 //   /* ======================
-//      RENDER
+//      LOADING
 //   ====================== */
 //   if (loading) {
 //     return (
-//       <div className="p-6 flex items-center justify-center min-h-screen">
-//         <div className="text-center">
-//           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-//           <p className="text-gray-600">Loading products...</p>
-//         </div>
+//       <div className="p-10 text-center">
+//         Loading...
 //       </div>
 //     );
 //   }
 
 //   return (
 //     <div className="p-6 max-w-7xl mx-auto">
-//       <div className="mb-6">
-//         <h1 className="text-2xl font-bold mb-2">Product Sync Dashboard</h1>
-//         <p className="text-gray-600">
-//           Compare and sync products from BrahmaGems to Shopify
-//         </p>
-//       </div>
+//       <h1 className="text-3xl font-bold mb-2">
+//         Product Sync Dashboard
+//       </h1>
 
-//       {/* Stats */}
-//       <div className="grid grid-cols-3 gap-4 mb-6">
+//       <p className="text-gray-600 mb-6">
+//         Compare BrahmaGems and
+//         Shopify products
+//       </p>
+
+//       {/* ======================
+//          STATS
+//       ====================== */}
+//       <div className="grid grid-cols-4 gap-4 mb-6">
 //         <div className="bg-blue-50 p-4 rounded-lg">
-//           <div className="text-2xl font-bold text-blue-600">{newCount}</div>
-//           <div className="text-sm text-gray-600">New Products</div>
+//           <div className="text-2xl font-bold text-blue-600">
+//             {newCount}
+//           </div>
+
+//           <div className="text-sm text-gray-600">
+//             New Products
+//           </div>
 //         </div>
+
 //         <div className="bg-green-50 p-4 rounded-lg">
 //           <div className="text-2xl font-bold text-green-600">
 //             {existingCount}
 //           </div>
-//           <div className="text-sm text-gray-600">Existing Products</div>
+
+//           <div className="text-sm text-gray-600">
+//             Existing Products
+//           </div>
 //         </div>
+
 //         <div className="bg-orange-50 p-4 rounded-lg">
 //           <div className="text-2xl font-bold text-orange-600">
 //             {priceChanges}
 //           </div>
-//           <div className="text-sm text-gray-600">Price Changes</div>
+
+//           <div className="text-sm text-gray-600">
+//             Price Changes
+//           </div>
+//         </div>
+
+//         <div className="bg-red-50 p-4 rounded-lg">
+//           <div className="text-2xl font-bold text-red-600">
+//             {missingCount}
+//           </div>
+
+//           <div className="text-sm text-gray-600">
+//             Missing Products
+//           </div>
 //         </div>
 //       </div>
 
-//       {/* 🆕 BULK PRICE CALCULATOR */}
-//       <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-5 rounded-lg mb-6 border border-purple-200">
-//         <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
-//           🧮 Bulk Price Calculator
-//         </h2>
-        
-//         <div className="flex gap-3 items-start">
-//           <div className="flex-1">
-//             <input
-//               type="text"
-//               value={bulkPriceInput}
-//               onChange={(e) => setBulkPriceInput(e.target.value)}
-//               onKeyDown={(e) => e.key === "Enter" && applyBulkPrice()}
-//               placeholder="e.g., 2x, 10%, +5000, -10%"
-//               className="w-full border-2 border-purple-300 rounded-lg px-4 py-2 text-lg focus:border-purple-500 focus:outline-none"
-//             />
-//             <div className="text-xs text-gray-600 mt-2 flex flex-wrap gap-3">
-//               <span>📊 <strong>2x</strong> = Double price</span>
-//               <span>📈 <strong>10%</strong> = Add 10%</span>
-//               <span>📉 <strong>-5%</strong> = Reduce 5%</span>
-//               <span>➕ <strong>+5000</strong> = Add ₹5000</span>
-//               <span>➖ <strong>-1000</strong> = Reduce ₹1000</span>
-//             </div>
-//           </div>
-          
+//       {/* ======================
+//          FILTERS
+//       ====================== */}
+//       <div className="flex gap-2 mb-4 flex-wrap">
+//         {[
+//           "ALL",
+//           "NEW",
+//           "EXISTS",
+//           "MISSING_FROM_API",
+//         ].map((f) => (
+//           <button
+//             key={f}
+//             onClick={() =>
+//               setFilter(f as any)
+//             }
+//             className={`px-4 py-2 rounded border ${
+//               filter === f
+//                 ? "bg-black text-white"
+//                 : "bg-white"
+//             }`}
+//           >
+//             {f}
+//           </button>
+//         ))}
+//       </div>
+
+//       {/* ======================
+//          EXCLUDE
+//       ====================== */}
+//       <div className="mb-6">
+//         <input
+//           type="text"
+//           placeholder="Exclude keywords. Example: diamond,ruby,test"
+//           value={excludeKeywords}
+//           onChange={(e) =>
+//             setExcludeKeywords(
+//               e.target.value
+//             )
+//           }
+//           className="border px-4 py-2 rounded w-full"
+//         />
+//       </div>
+
+//       {/* ======================
+//          BULK PRICE
+//       ====================== */}
+//       <div className="bg-purple-50 p-5 rounded-lg mb-6">
+//         <div className="flex gap-3">
+//           <input
+//             type="text"
+//             value={bulkPriceInput}
+//             onChange={(e) =>
+//               setBulkPriceInput(
+//                 e.target.value
+//               )
+//             }
+//             placeholder="2x, +10%, +5000"
+//             className="border px-4 py-2 rounded w-full"
+//           />
+
 //           <button
 //             onClick={applyBulkPrice}
-//             disabled={!bulkPriceInput.trim()}
-//             className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold whitespace-nowrap"
+//             className="bg-purple-600 text-white px-6 rounded"
 //           >
-//             Apply to All
+//             Apply
 //           </button>
 //         </div>
 //       </div>
 
-//       {/* Error Message */}
+//       {/* ======================
+//          ERROR
+//       ====================== */}
 //       {errorMessage && (
 //         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-//           <div className="flex items-center justify-between">
-//             <span>{errorMessage}</span>
-//             <button
-//               onClick={() => setErrorMessage("")}
-//               className="text-red-700 hover:text-red-900"
-//             >
-//               ✕
-//             </button>
-//           </div>
+//           {errorMessage}
 //         </div>
 //       )}
 
-//       {/* Success Message */}
+//       {/* ======================
+//          SUCCESS
+//       ====================== */}
 //       {syncStatus === "success" && (
 //         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
-//           ✓ Sync completed successfully!
+//           Sync completed successfully
 //         </div>
 //       )}
 
-//       {/* Sync Button */}
-//       <div className="mb-4 flex gap-2">
+//       {/* ======================
+//          BUTTONS
+//       ====================== */}
+//       <div className="flex gap-2 mb-4">
 //         <button
 //           onClick={handleSync}
-//           disabled={syncStatus === "syncing"}
-//           className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+//           disabled={
+//             syncStatus === "syncing"
+//           }
+//           className="bg-black text-white px-6 py-2 rounded"
 //         >
-//           {syncStatus === "syncing" ? (
-//             <>
-//               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-//               Syncing... {Math.round(syncProgress)}%
-//             </>
-//           ) : (
-//             <>🔄 Sync Products</>
-//           )}
+//           {syncStatus === "syncing"
+//             ? `Syncing ${Math.round(
+//                 syncProgress
+//               )}%`
+//             : "Sync Products"}
 //         </button>
 
 //         <button
 //           onClick={loadProducts}
-//           disabled={syncStatus === "syncing"}
-//           className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-50 disabled:opacity-50"
+//           className="border px-4 py-2 rounded"
 //         >
-//           🔃 Refresh
+//           Refresh
 //         </button>
 //       </div>
 
-//       {/* Table */}
-//       <div className="border rounded-lg overflow-hidden">
+//       {/* ======================
+//          TABLE
+//       ====================== */}
+//       <div className="border rounded-lg overflow-auto">
 //         <table className="w-full text-sm">
 //           <thead className="bg-gray-50">
 //             <tr>
-//               <th className="border-b p-3 text-left font-semibold">Product</th>
-//                <th className="border-b p-3 text-center font-semibold">
+//               <th className="border-b p-3 text-left">
+//                 Product
+//               </th>
+
+//               <th className="border-b p-3 text-center">
 //                 Shopify Price
 //               </th>
-//               <th className="border-b p-3 text-center font-semibold">
-//                 Third Party Api Price
+
+//               <th className="border-b p-3 text-center">
+//                 API Price
 //               </th>
-             
-//               <th className="border-b p-3 text-center font-semibold">
+
+//               <th className="border-b p-3 text-center">
 //                 New Price
 //               </th>
-//               <th className="border-b p-3 text-center font-semibold">Status</th>
+
+//               <th className="border-b p-3 text-center">
+//                 Status
+//               </th>
 //             </tr>
 //           </thead>
+
 //           <tbody>
-//             {products.length === 0 ? (
-//               <tr>
-//                 <td colSpan={5} className="p-8 text-center text-gray-500">
-//                   No products found
-//                 </td>
-//               </tr>
-//             ) : (
-//               products.map((p) => {
-//                const priceChanged =
-//   p.sellingPrice !== null &&
-//   p.shopifyPrice !== null &&
-//   p.sellingPrice !== p.shopifyPrice;
+//             {filteredProducts.map(
+//               (p) => {
+//                 const priceChanged =
+//                   p.sellingPrice !==
+//                     null &&
+//                   p.shopifyPrice !==
+//                     null &&
+//                   p.sellingPrice !==
+//                     p.shopifyPrice;
 
 //                 return (
-//                   <tr key={p.id} className="hover:bg-gray-50">
+//                   <tr
+//                     key={p.id}
+//                     className="hover:bg-gray-50"
+//                   >
 //                     <td className="border-b p-3">
-//                       <div className="font-medium">{p.title}</div>
-//                       <div className="text-xs text-gray-500 mt-1 flex gap-3">
-//                         {p.images.length > 0 && (
-//                           <span>📷 {p.images.length} image(s)</span>
-//                         )}
-//                         {p.videos.length > 0 && (
-//                           <span>🎥 {p.videos.length} video(s)</span>
-//                         )}
-//                         {p.certificateUrl && <span>📜 Certificate</span>}
+//                       <div className="font-medium">
+//                         {p.title}
 //                       </div>
 //                     </td>
-// <td className="border-b p-3 text-center">
-//                       {p.shopifyPrice !== null && p.shopifyPrice > 0 ? (
-//                         <span className="font-medium text-green-700">
-//                           ₹{p.shopifyPrice.toLocaleString("en-IN")}
+
+//                     <td className="border-b p-3 text-center">
+//                       {p.shopifyPrice !==
+//                       null ? (
+//                         <span className="text-green-700 font-medium">
+//                           ₹
+//                           {p.shopifyPrice.toLocaleString(
+//                             "en-IN"
+//                           )}
 //                         </span>
 //                       ) : (
-//                         <span className="text-gray-400">—</span>
+//                         "—"
 //                       )}
 //                     </td>
 
 //                     <td className="border-b p-3 text-center">
-//                       <span className="font-medium">
-//                         ₹{p.basePrice.toLocaleString("en-IN")}
-//                       </span>
+//                       ₹
+//                       {p.basePrice.toLocaleString(
+//                         "en-IN"
+//                       )}
 //                     </td>
 
-                    
 //                     <td className="border-b p-3 text-center">
 //                       <input
 //                         type="number"
-//                         value={p.sellingPrice}
-//                         onChange={(e) =>
-//   setProducts((prev) =>
-//     prev.map((x) =>
-//       x.id === p.id
-//         ? {
-//             ...x,
-//             sellingPrice:
-//               e.target.value === "" ? null : Number(e.target.value),
-//             isEdited: e.target.value !== "", // 👈 yahin magic
-//           }
-//         : x
-//     )
-//   )
-// }
-
-
+//                         value={
+//                           p.sellingPrice ??
+//                           ""
+//                         }
+//                         onChange={(
+//                           e
+//                         ) =>
+//                           setProducts(
+//                             (prev) =>
+//                               prev.map(
+//                                 (
+//                                   x
+//                                 ) =>
+//                                   x.id ===
+//                                   p.id
+//                                     ? {
+//                                         ...x,
+//                                         sellingPrice:
+//                                           e
+//                                             .target
+//                                             .value ===
+//                                           ""
+//                                             ? null
+//                                             : Number(
+//                                                 e
+//                                                   .target
+//                                                   .value
+//                                               ),
+//                                         isEdited:
+//                                           true,
+//                                       }
+//                                     : x
+//                               )
+//                           )
+//                         }
 //                         className={`border px-3 py-1 w-32 rounded text-center ${
 //                           priceChanged
 //                             ? "border-orange-400 bg-orange-50"
 //                             : "border-gray-300"
 //                         }`}
 //                       />
-//                       {priceChanged && (
-//                         <div className="text-xs text-orange-600 mt-1">
-//                           Changed
-//                         </div>
-//                       )}
 //                     </td>
 
 //                     <td className="border-b p-3 text-center">
 //                       <span
 //                         className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-//                           p.status === "NEW"
+//                           p.status ===
+//                           "NEW"
 //                             ? "bg-blue-100 text-blue-700"
-//                             : "bg-green-100 text-green-700"
+//                             : p.status ===
+//                               "EXISTS"
+//                             ? "bg-green-100 text-green-700"
+//                             : "bg-red-100 text-red-700"
 //                         }`}
 //                       >
-//                         {p.status === "NEW" ? "🆕 NEW" : "♻️ EXISTS"}
+//                         {p.status ===
+//                         "NEW"
+//                           ? "🆕 NEW"
+//                           : p.status ===
+//                             "EXISTS"
+//                           ? "♻️ EXISTS"
+//                           : "⚠️ MISSING"}
 //                       </span>
 //                     </td>
 //                   </tr>
 //                 );
-//               })
+//               }
 //             )}
 //           </tbody>
 //         </table>
 //       </div>
 
 //       {/* ======================
-//           PRICE UPDATE MODAL
+//          MODAL
 //       ====================== */}
 //       {showModal && (
-//         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-//           <div className="bg-white p-6 w-96 rounded-lg shadow-xl">
-//             <h2 className="font-bold text-lg mb-3">Update Existing Products</h2>
+//         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+//           <div className="bg-white p-6 rounded-lg w-96">
+//             <h2 className="font-bold text-lg mb-3">
+//               Update Existing
+//               Products
+//             </h2>
+
 //             <p className="text-sm text-gray-600 mb-4">
-//               {priceChanges > 0
-//                 ? `${priceChanges} product(s) have price changes. Do you want to update them in Shopify?`
-//                 : "No price changes detected for existing products."}
+//               {priceChanges} price
+//               changes found
 //             </p>
 
-//             <div className="flex gap-2 justify-end">
-//               {priceChanges > 0 && (
-//                 <button
-//                   onClick={updateExistingPrices}
-//                   disabled={syncStatus === "syncing"}
-//                   className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400 flex items-center gap-2"
-//                 >
-//                   {syncStatus === "syncing" ? (
-//                     <>
-//                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-//                       Updating... {Math.round(syncProgress)}%
-//                     </>
-//                   ) : (
-//                     "Update Prices"
-//                   )}
-//                 </button>
-//               )}
+//             <div className="flex justify-end gap-2">
 //               <button
-//                 onClick={() => {
-//                   setShowModal(false);
-//                   setSyncStatus("idle");
-//                 }}
-//                 disabled={syncStatus === "syncing"}
-//                 className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-50 disabled:opacity-50"
+//                 onClick={
+//                   updateExistingPrices
+//                 }
+//                 className="bg-green-600 text-white px-4 py-2 rounded"
 //               >
-//                 {priceChanges > 0 ? "Skip" : "Close"}
+//                 Update Prices
+//               </button>
+
+//               <button
+//                 onClick={() =>
+//                   setShowModal(false)
+//                 }
+//                 className="border px-4 py-2 rounded"
+//               >
+//                 Close
 //               </button>
 //             </div>
 //           </div>
@@ -548,20 +889,39 @@ import { useEffect, useState } from "react";
 /* ======================
    TYPES
 ====================== */
+type ProductStatus =
+  | "NEW"
+  | "EXISTS"
+  | "MISSING_FROM_API";
+
+type ShopifyStatus =
+  | "ACTIVE"
+  | "DRAFT"
+  | "ARCHIVED"
+  | null;
+
 type Product = {
   id: string;
   title: string;
+
   basePrice: number;
   shopifyPrice: number | null;
+
   sellingPrice: number | null;
+
   isEdited?: boolean;
+
   images: string[];
   videos: string[];
+
   certificateUrl?: string | null;
-  status: "NEW" | "EXISTS";
+
+  status: ProductStatus;
+
   shopifyProductId?: string;
 
-  // ✅ Naye fields add kar
+  shopifyStatus?: ShopifyStatus;
+
   category_name?: string | null;
   color?: string | null;
   origin?: string | null;
@@ -574,54 +934,83 @@ type Product = {
   certifications_number?: string | null;
 };
 
-type SyncStatus = "idle" | "syncing" | "success" | "error";
+type SyncStatus =
+  | "idle"
+  | "syncing"
+  | "success"
+  | "error";
 
 /* ======================
    PAGE
 ====================== */
 export default function CompareProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
-  const [syncProgress, setSyncProgress] = useState(0);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  
-  // 🆕 Bulk price calculator
-  const [bulkPriceInput, setBulkPriceInput] = useState<string>("");
+
+  const [filter, setFilter] = useState<
+    "ALL" | ProductStatus
+  >("ALL");
+
+  const [excludeKeywords, setExcludeKeywords] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [showModal, setShowModal] =
+    useState(false);
+
+  const [syncStatus, setSyncStatus] =
+    useState<SyncStatus>("idle");
+
+  const [syncProgress, setSyncProgress] =
+    useState(0);
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  const [bulkPriceInput, setBulkPriceInput] =
+    useState("");
 
   /* ======================
      FETCH DATA
   ====================== */
   useEffect(() => {
     loadProducts();
-    
   }, []);
 
   async function loadProducts() {
     setLoading(true);
     setErrorMessage("");
-    
+
     try {
-      const res = await fetch("/api/compare-data");
-      
+      const res = await fetch(
+        "/api/compare-data"
+      );
+
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        throw new Error(
+          `HTTP ${res.status}`
+        );
       }
-      
+
       const data = await res.json();
-      console.log("📦 Loaded products:", data.products);
-setProducts(
-  (data.products ?? []).map((p: Product) => ({
-    ...p,
-    sellingPrice: null,
-    isEdited: false,
-  }))
-);
+
+      setProducts(
+        (data.products ?? []).map(
+          (p: Product) => ({
+            ...p,
+            sellingPrice: null,
+            isEdited: false,
+          })
+        )
+      );
     } catch (error) {
-      console.error("Failed to load compare data:", error);
+      console.error(error);
+
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to load products"
+        error instanceof Error
+          ? error.message
+          : "Failed to load"
       );
     } finally {
       setLoading(false);
@@ -629,123 +1018,310 @@ setProducts(
   }
 
   /* ======================
-     🆕 BULK PRICE CALCULATOR
+     FILTERED PRODUCTS
   ====================== */
- function applyBulkPrice() {
-  const input = bulkPriceInput.trim().replace(/\s+/g, "");
-  if (!input) return;
+  const excludedKeywords =
+    excludeKeywords
+      .toLowerCase()
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
 
-  // Tokenize formula into steps: 2x, +10%, -20%, +500, -1000, 1.5x, etc.
-  const tokenRegex = /([+-]?(?:\d+\.?\d*x|\d+\.?\d*%|\d+))/gi;
-  const tokens = input.match(tokenRegex);
-
-  if (!tokens) return;
-
-  setProducts((prevProducts) =>
-    prevProducts.map((product) => {
-      let price = product.basePrice;
-
-      for (const token of tokens) {
-        const clean = token.replace(/[()]/g, "");
-        const sign = clean.startsWith("-") ? -1 : 1;
-        const abs = clean.replace(/^[+-]/, "");
-
-        if (/^\d+\.?\d*x$/i.test(abs)) {
-          // Multiplier: 2x, 1.5x
-          price = price * parseFloat(abs);
-        } else if (/^\d+\.?\d*%$/.test(abs)) {
-          // Percentage: +10%, -20%
-          price = price + sign * price * (parseFloat(abs) / 100);
-        } else if (/^\d+$/.test(abs)) {
-          // Fixed amount: +5000, -1000
-          price = price + sign * parseInt(abs);
-        }
+  const filteredProducts = products
+    .filter((p) => {
+      if (filter === "ALL") {
+        return true;
       }
 
-      return {
-        ...product,
-        sellingPrice: Math.max(0, Math.round(price)),
-        isEdited: true,
-      };
+      return p.status === filter;
     })
-  );
+    .filter((p) => {
+      const title =
+        p.title.toLowerCase();
 
-  setBulkPriceInput("");
-}
+      return !excludedKeywords.some(
+        (k) => title.includes(k)
+      );
+    });
 
   /* ======================
-     SYNC BUTTON
+     BULK PRICE
+  ====================== */
+  function applyBulkPrice() {
+    const input = bulkPriceInput
+      .trim()
+      .replace(/\s+/g, "");
+
+    if (!input) return;
+
+    const tokenRegex =
+      /([+-]?(?:\d+\.?\d*x|\d+\.?\d*%|\d+))/gi;
+
+    const tokens =
+      input.match(tokenRegex);
+
+    if (!tokens) return;
+
+    setProducts((prevProducts) =>
+      prevProducts.map((product) => {
+        let price = product.basePrice;
+
+        for (const token of tokens) {
+          const clean =
+            token.replace(/[()]/g, "");
+
+          const sign =
+            clean.startsWith("-")
+              ? -1
+              : 1;
+
+          const abs =
+            clean.replace(/^[+-]/, "");
+
+          if (
+            /^\d+\.?\d*x$/i.test(abs)
+          ) {
+            price =
+              price *
+              parseFloat(abs);
+          } else if (
+            /^\d+\.?\d*%$/.test(abs)
+          ) {
+            price =
+              price +
+              sign *
+                price *
+                (parseFloat(abs) /
+                  100);
+          } else if (
+            /^\d+$/.test(abs)
+          ) {
+            price =
+              price +
+              sign *
+                parseInt(abs);
+          }
+        }
+
+        return {
+          ...product,
+          sellingPrice: Math.max(
+            0,
+            Math.round(price)
+          ),
+          isEdited: true,
+        };
+      })
+    );
+
+    setBulkPriceInput("");
+  }
+
+  /* ======================
+     SYNC
   ====================== */
   async function handleSync() {
-    setSyncStatus("syncing");
-    setSyncProgress(0);
-    setErrorMessage("");
-
     try {
-      // 1️⃣ ADD ALL NEW PRODUCTS
-const newProducts = products.filter(
-  (p) => p.status === "NEW" && p.isEdited && p.sellingPrice !== null
-);
+      setSyncStatus("syncing");
+      setSyncProgress(0);
 
-      if (newProducts.length > 0) {
-        for (let i = 0; i < newProducts.length; i++) {
-          const p = newProducts[i];
+      /* ======================
+         NEW PRODUCTS
+      ====================== */
+      const newProducts =
+        filteredProducts.filter(
+          (p) =>
+            p.status === "NEW" &&
+            p.isEdited &&
+            p.sellingPrice !== null
+        );
 
-          const res = await fetch("/api/shopify/create-product", {
+      for (
+        let i = 0;
+        i < newProducts.length;
+        i++
+      ) {
+        const p = newProducts[i];
+
+        const res = await fetch(
+          "/api/shopify/create-product",
+          {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-  product_name: p.title,
-  price: p.sellingPrice,
-  mrp: p.basePrice,
-  image_url: p.images[0] ?? null,
-  images: p.images.slice(1),
-  video_url: p.videos[0] ?? null,
-  certificate_url: p.certificateUrl ?? null,
 
-  // ✅ Ye naye fields
-  category_name: p.category_name,
-  color: p.color,
-  origin: p.origin,
-  shape: p.shape,
-  transparency: p.transparency,
-  treatment: p.treatment,
-  weight_in_carat: p.weight_in_carat,
-  dimension: p.dimension,
-  certifications_name: p.certifications_name,
-  certifications_number: p.certifications_number,
-}),
-          });
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          if (!res.ok) {
-            const error = await res.json();
-            throw new Error(
-              `Failed to create "${p.title}": ${JSON.stringify(error)}`
-            );
+            body: JSON.stringify({
+              product_name:
+                p.title,
+
+              price:
+                p.sellingPrice,
+
+              mrp: p.basePrice,
+
+              image_url:
+                p.images[0] ??
+                null,
+
+              images:
+                p.images.slice(1),
+
+              video_url:
+                p.videos[0] ??
+                null,
+
+              certificate_url:
+                p.certificateUrl ??
+                null,
+
+              category_name:
+                p.category_name,
+
+              color: p.color,
+
+              origin: p.origin,
+
+              shape: p.shape,
+
+              transparency:
+                p.transparency,
+
+              treatment:
+                p.treatment,
+
+              weight_in_carat:
+                p.weight_in_carat,
+
+              dimension:
+                p.dimension,
+
+              certifications_name:
+                p.certifications_name,
+
+              certifications_number:
+                p.certifications_number,
+            }),
           }
+        );
 
-          setSyncProgress(((i + 1) / newProducts.length) * 100);
+        if (!res.ok) {
+          throw new Error(
+            `Failed to create ${p.title}`
+          );
+        }
+
+        setSyncProgress(
+          ((i + 1) /
+            newProducts.length) *
+            100
+        );
+      }
+
+      /* ======================
+         DRAFT MISSING PRODUCTS
+      ====================== */
+      const missingProducts =
+        filteredProducts.filter(
+          (p) =>
+            p.status ===
+            "MISSING_FROM_API"
+        );
+
+      for (const p of missingProducts) {
+        const res = await fetch(
+          "/api/shopify/draft-product",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              productId:
+                p.shopifyProductId,
+            }),
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error(
+            `Failed to draft ${p.title}`
+          );
         }
       }
 
-      // 2️⃣ SHOW MODAL FOR EXISTING
-      const existingProducts = products.filter((p) => p.status === "EXISTS");
-      
-      if (existingProducts.length > 0) {
+      /* ======================
+         ACTIVATE DRAFT PRODUCTS
+      ====================== */
+      const draftProducts =
+        filteredProducts.filter(
+          (p) =>
+            p.status === "EXISTS" &&
+            p.shopifyStatus === "DRAFT"
+        );
+
+      for (const p of draftProducts) {
+        const res = await fetch(
+          "/api/shopify/activate-product",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              productId:
+                p.shopifyProductId,
+            }),
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error(
+            `Failed to activate ${p.title}`
+          );
+        }
+      }
+
+      /* ======================
+         EXISTING PRODUCTS
+      ====================== */
+      const existingProducts =
+        filteredProducts.filter(
+          (p) =>
+            p.status ===
+            "EXISTS"
+        );
+
+      if (
+        existingProducts.length > 0
+      ) {
         setShowModal(true);
         setSyncStatus("idle");
       } else {
         setSyncStatus("success");
+
         setTimeout(() => {
           setSyncStatus("idle");
-          loadProducts(); // Refresh data
+          loadProducts();
         }, 2000);
       }
     } catch (error) {
-      console.error("Sync error:", error);
+      console.error(error);
+
       setErrorMessage(
-        error instanceof Error ? error.message : "Sync failed"
+        error instanceof Error
+          ? error.message
+          : "Sync failed"
       );
+
       setSyncStatus("error");
     }
   }
@@ -754,353 +1330,496 @@ const newProducts = products.filter(
      UPDATE EXISTING PRICES
   ====================== */
   async function updateExistingPrices() {
-    setSyncStatus("syncing");
-    setSyncProgress(0);
-    setErrorMessage("");
-
     try {
-    const existing = products.filter(
-  (p) =>
-    p.status === "EXISTS" &&
-    p.isEdited &&                          // 👈 yahi missing tha
-    p.shopifyProductId &&
-    p.sellingPrice !== null &&
-    p.sellingPrice !== p.shopifyPrice      // 👈 extra safety: actual change
-);
+      setSyncStatus("syncing");
 
+      const existing =
+        filteredProducts.filter(
+          (p) =>
+            p.status ===
+              "EXISTS" &&
+            p.isEdited &&
+            p.shopifyProductId &&
+            p.sellingPrice !==
+              null &&
+            p.sellingPrice !==
+              p.shopifyPrice
+        );
 
-      for (let i = 0; i < existing.length; i++) {
+      for (
+        let i = 0;
+        i < existing.length;
+        i++
+      ) {
         const p = existing[i];
 
-        const res = await fetch("/api/shopify/update-price", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            productId: p.shopifyProductId,
-            price: p.sellingPrice,
-          }),
-        });
+        const res = await fetch(
+          "/api/shopify/update-price",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            body: JSON.stringify({
+              productId:
+                p.shopifyProductId,
+
+              price:
+                p.sellingPrice,
+            }),
+          }
+        );
 
         if (!res.ok) {
-          const error = await res.json();
           throw new Error(
-            `Failed to update "${p.title}": ${JSON.stringify(error)}`
+            `Failed to update ${p.title}`
           );
         }
 
-        setSyncProgress(((i + 1) / existing.length) * 100);
+        setSyncProgress(
+          ((i + 1) /
+            existing.length) *
+            100
+        );
       }
 
       setShowModal(false);
+
       setSyncStatus("success");
-      
+
       setTimeout(() => {
         setSyncStatus("idle");
-        loadProducts(); // Refresh data
+        loadProducts();
       }, 2000);
     } catch (error) {
-      console.error("Update error:", error);
+      console.error(error);
+
       setErrorMessage(
-        error instanceof Error ? error.message : "Update failed"
+        error instanceof Error
+          ? error.message
+          : "Update failed"
       );
+
       setSyncStatus("error");
     }
   }
 
   /* ======================
-     COMPUTED VALUES
+     STATS
   ====================== */
-  const newCount = products.filter((p) => p.status === "NEW").length;
-  const existingCount = products.filter((p) => p.status === "EXISTS").length;
- const priceChanges = products.filter(
-  (p) =>
-    p.status === "EXISTS" &&
-    p.sellingPrice !== null &&          // 👈 MOST IMPORTANT
-    p.shopifyPrice !== null &&
-    p.sellingPrice !== p.shopifyPrice
-).length;
+  const newCount =
+    products.filter(
+      (p) => p.status === "NEW"
+    ).length;
+
+  const existingCount =
+    products.filter(
+      (p) => p.status === "EXISTS"
+    ).length;
+
+  const missingCount =
+    products.filter(
+      (p) =>
+        p.status ===
+        "MISSING_FROM_API"
+    ).length;
+
+  const draftCount =
+    products.filter(
+      (p) =>
+        p.shopifyStatus ===
+        "DRAFT"
+    ).length;
+
+  const activeCount =
+    products.filter(
+      (p) =>
+        p.shopifyStatus ===
+        "ACTIVE"
+    ).length;
+
+  const priceChanges =
+    products.filter(
+      (p) =>
+        p.status === "EXISTS" &&
+        p.sellingPrice !== null &&
+        p.shopifyPrice !== null &&
+        p.sellingPrice !==
+          p.shopifyPrice
+    ).length;
 
   /* ======================
-     RENDER
+     LOADING
   ====================== */
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading products...</p>
-        </div>
+      <div className="p-10 text-center">
+        Loading...
       </div>
     );
   }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Product Sync Dashboard</h1>
-        <p className="text-gray-600">
-          Compare and sync products from BrahmaGems to Shopify
-        </p>
-      </div>
+      <h1 className="text-3xl font-bold mb-2">
+        Product Sync Dashboard
+      </h1>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <p className="text-gray-600 mb-6">
+        Compare BrahmaGems and
+        Shopify products
+      </p>
+
+      <div className="grid grid-cols-5 gap-4 mb-6">
         <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{newCount}</div>
-          <div className="text-sm text-gray-600">New Products</div>
+          <div className="text-2xl font-bold text-blue-600">
+            {newCount}
+          </div>
+
+          <div className="text-sm text-gray-600">
+            New Products
+          </div>
         </div>
+
         <div className="bg-green-50 p-4 rounded-lg">
           <div className="text-2xl font-bold text-green-600">
             {existingCount}
           </div>
-          <div className="text-sm text-gray-600">Existing Products</div>
+
+          <div className="text-sm text-gray-600">
+            Existing Products
+          </div>
         </div>
+
         <div className="bg-orange-50 p-4 rounded-lg">
           <div className="text-2xl font-bold text-orange-600">
             {priceChanges}
           </div>
-          <div className="text-sm text-gray-600">Price Changes</div>
+
+          <div className="text-sm text-gray-600">
+            Price Changes
+          </div>
+        </div>
+
+        <div className="bg-red-50 p-4 rounded-lg">
+          <div className="text-2xl font-bold text-red-600">
+            {missingCount}
+          </div>
+
+          <div className="text-sm text-gray-600">
+            Missing Products
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 p-4 rounded-lg">
+          <div className="text-2xl font-bold text-yellow-600">
+            {draftCount}
+          </div>
+
+          <div className="text-sm text-gray-600">
+            Draft Products
+          </div>
         </div>
       </div>
 
-      {/* 🆕 BULK PRICE CALCULATOR */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-5 rounded-lg mb-6 border border-purple-200">
-        <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
-          🧮 Bulk Price Calculator
-        </h2>
-        
-        <div className="flex gap-3 items-start">
-          <div className="flex-1">
-            <input
-              type="text"
-              value={bulkPriceInput}
-              onChange={(e) => setBulkPriceInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyBulkPrice()}
-              placeholder="e.g., 2x, 10%, +5000, -10%"
-              className="w-full border-2 border-purple-300 rounded-lg px-4 py-2 text-lg focus:border-purple-500 focus:outline-none"
-            />
-            <div className="text-xs text-gray-600 mt-2 flex flex-wrap gap-3">
-              <span>📊 <strong>2x</strong> = Double price</span>
-              <span>📈 <strong>10%</strong> = Add 10%</span>
-              <span>📉 <strong>-5%</strong> = Reduce 5%</span>
-              <span>➕ <strong>+5000</strong> = Add ₹5000</span>
-              <span>➖ <strong>-1000</strong> = Reduce ₹1000</span>
-            </div>
-          </div>
-          
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {[
+          "ALL",
+          "NEW",
+          "EXISTS",
+          "MISSING_FROM_API",
+        ].map((f) => (
+          <button
+            key={f}
+            onClick={() =>
+              setFilter(f as any)
+            }
+            className={`px-4 py-2 rounded border ${
+              filter === f
+                ? "bg-black text-white"
+                : "bg-white"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Exclude keywords. Example: diamond,ruby,test"
+          value={excludeKeywords}
+          onChange={(e) =>
+            setExcludeKeywords(
+              e.target.value
+            )
+          }
+          className="border px-4 py-2 rounded w-full"
+        />
+      </div>
+
+      <div className="bg-purple-50 p-5 rounded-lg mb-6">
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={bulkPriceInput}
+            onChange={(e) =>
+              setBulkPriceInput(
+                e.target.value
+              )
+            }
+            placeholder="2x, +10%, +5000"
+            className="border px-4 py-2 rounded w-full"
+          />
+
           <button
             onClick={applyBulkPrice}
-            disabled={!bulkPriceInput.trim()}
-            className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold whitespace-nowrap"
+            className="bg-purple-600 text-white px-6 rounded"
           >
-            Apply to All
+            Apply
           </button>
         </div>
       </div>
 
-      {/* Error Message */}
       {errorMessage && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          <div className="flex items-center justify-between">
-            <span>{errorMessage}</span>
-            <button
-              onClick={() => setErrorMessage("")}
-              className="text-red-700 hover:text-red-900"
-            >
-              ✕
-            </button>
-          </div>
+          {errorMessage}
         </div>
       )}
 
-      {/* Success Message */}
       {syncStatus === "success" && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
-          ✓ Sync completed successfully!
+          Sync completed successfully
         </div>
       )}
 
-      {/* Sync Button */}
-      <div className="mb-4 flex gap-2">
+      <div className="flex gap-2 mb-4">
         <button
           onClick={handleSync}
-          disabled={syncStatus === "syncing"}
-          className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+          disabled={
+            syncStatus === "syncing"
+          }
+          className="bg-black text-white px-6 py-2 rounded"
         >
-          {syncStatus === "syncing" ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Syncing... {Math.round(syncProgress)}%
-            </>
-          ) : (
-            <>🔄 Sync Products</>
-          )}
+          {syncStatus === "syncing"
+            ? `Syncing ${Math.round(
+                syncProgress
+              )}%`
+            : "Sync Products"}
         </button>
 
         <button
           onClick={loadProducts}
-          disabled={syncStatus === "syncing"}
-          className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-50 disabled:opacity-50"
+          className="border px-4 py-2 rounded"
         >
-          🔃 Refresh
+          Refresh
         </button>
       </div>
 
-      {/* Table */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg overflow-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="border-b p-3 text-left font-semibold">Product</th>
-               <th className="border-b p-3 text-center font-semibold">
+              <th className="border-b p-3 text-left">
+                Product
+              </th>
+
+              <th className="border-b p-3 text-center">
                 Shopify Price
               </th>
-              <th className="border-b p-3 text-center font-semibold">
-                Third Party Api Price
+
+              <th className="border-b p-3 text-center">
+                API Price
               </th>
-             
-              <th className="border-b p-3 text-center font-semibold">
+
+              <th className="border-b p-3 text-center">
                 New Price
               </th>
-              <th className="border-b p-3 text-center font-semibold">Status</th>
+
+              <th className="border-b p-3 text-center">
+                Shopify Status
+              </th>
+
+              <th className="border-b p-3 text-center">
+                Status
+              </th>
             </tr>
           </thead>
+
           <tbody>
-            {products.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-gray-500">
-                  No products found
-                </td>
-              </tr>
-            ) : (
-              products.map((p) => {
-               const priceChanged =
-  p.sellingPrice !== null &&
-  p.shopifyPrice !== null &&
-  p.sellingPrice !== p.shopifyPrice;
+            {filteredProducts.map((p) => {
+              const priceChanged =
+                p.sellingPrice !==
+                  null &&
+                p.shopifyPrice !==
+                  null &&
+                p.sellingPrice !==
+                  p.shopifyPrice;
 
-                return (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="border-b p-3">
-                      <div className="font-medium">{p.title}</div>
-                      <div className="text-xs text-gray-500 mt-1 flex gap-3">
-                        {p.images.length > 0 && (
-                          <span>📷 {p.images.length} image(s)</span>
-                        )}
-                        {p.videos.length > 0 && (
-                          <span>🎥 {p.videos.length} video(s)</span>
-                        )}
-                        {p.certificateUrl && <span>📜 Certificate</span>}
-                      </div>
-                    </td>
-<td className="border-b p-3 text-center">
-                      {p.shopifyPrice !== null && p.shopifyPrice > 0 ? (
-                        <span className="font-medium text-green-700">
-                          ₹{p.shopifyPrice.toLocaleString("en-IN")}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
+              return (
+                <tr
+                  key={p.id}
+                  className="hover:bg-gray-50"
+                >
+                  <td className="border-b p-3">
+                    <div className="font-medium">
+                      {p.title}
+                    </div>
+                  </td>
 
-                    <td className="border-b p-3 text-center">
-                      <span className="font-medium">
-                        ₹{p.basePrice.toLocaleString("en-IN")}
+                  <td className="border-b p-3 text-center">
+                    {p.shopifyPrice !==
+                    null ? (
+                      <span className="text-green-700 font-medium">
+                        ₹
+                        {p.shopifyPrice.toLocaleString(
+                          "en-IN"
+                        )}
                       </span>
-                    </td>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
 
-                    
-                    <td className="border-b p-3 text-center">
-                      <input
-                        type="number"
-value={p.sellingPrice ?? ""}
-                        onChange={(e) =>
-  setProducts((prev) =>
-    prev.map((x) =>
-      x.id === p.id
-        ? {
-            ...x,
-            sellingPrice:
-              e.target.value === "" ? null : Number(e.target.value),
-            isEdited: e.target.value !== "", // 👈 yahin magic
-          }
-        : x
-    )
-  )
-}
+                  <td className="border-b p-3 text-center">
+                    ₹
+                    {p.basePrice.toLocaleString(
+                      "en-IN"
+                    )}
+                  </td>
 
+                  <td className="border-b p-3 text-center">
+                    <input
+                      type="number"
+                      value={
+                        p.sellingPrice ??
+                        ""
+                      }
+                      onChange={(
+                        e
+                      ) =>
+                        setProducts(
+                          (prev) =>
+                            prev.map(
+                              (
+                                x
+                              ) =>
+                                x.id ===
+                                p.id
+                                  ? {
+                                      ...x,
+                                      sellingPrice:
+                                        e
+                                          .target
+                                          .value ===
+                                        ""
+                                          ? null
+                                          : Number(
+                                              e
+                                                .target
+                                                .value
+                                            ),
+                                      isEdited:
+                                        true,
+                                    }
+                                  : x
+                            )
+                        )
+                      }
+                      className={`border px-3 py-1 w-32 rounded text-center ${
+                        priceChanged
+                          ? "border-orange-400 bg-orange-50"
+                          : "border-gray-300"
+                      }`}
+                    />
+                  </td>
 
-                        className={`border px-3 py-1 w-32 rounded text-center ${
-                          priceChanged
-                            ? "border-orange-400 bg-orange-50"
-                            : "border-gray-300"
-                        }`}
-                      />
-                      {priceChanged && (
-                        <div className="text-xs text-orange-600 mt-1">
-                          Changed
-                        </div>
-                      )}
-                    </td>
-
-                    <td className="border-b p-3 text-center">
+                  <td className="border-b p-3 text-center">
+                    {p.shopifyStatus ? (
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                          p.status === "NEW"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-green-100 text-green-700"
+                          p.shopifyStatus ===
+                          "ACTIVE"
+                            ? "bg-green-100 text-green-700"
+                            : p.shopifyStatus ===
+                              "DRAFT"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {p.status === "NEW" ? "🆕 NEW" : "♻️ EXISTS"}
+                        {p.shopifyStatus}
                       </span>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+
+                  <td className="border-b p-3 text-center">
+                    <span
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                        p.status === "NEW"
+                          ? "bg-blue-100 text-blue-700"
+                          : p.status ===
+                            "MISSING_FROM_API"
+                          ? "bg-red-100 text-red-700"
+                          : p.shopifyStatus ===
+                            "DRAFT"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {p.status === "NEW"
+                        ? "🆕 NEW"
+                        : p.status ===
+                          "MISSING_FROM_API"
+                        ? "⚠️ MISSING"
+                        : p.shopifyStatus ===
+                          "DRAFT"
+                        ? "📝 DRAFT"
+                        : "♻️ ACTIVE"}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {/* ======================
-          PRICE UPDATE MODAL
-      ====================== */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 w-96 rounded-lg shadow-xl">
-            <h2 className="font-bold text-lg mb-3">Update Existing Products</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="font-bold text-lg mb-3">
+              Update Existing
+              Products
+            </h2>
+
             <p className="text-sm text-gray-600 mb-4">
-              {priceChanges > 0
-                ? `${priceChanges} product(s) have price changes. Do you want to update them in Shopify?`
-                : "No price changes detected for existing products."}
+              {priceChanges} price
+              changes found
             </p>
 
-            <div className="flex gap-2 justify-end">
-              {priceChanges > 0 && (
-                <button
-                  onClick={updateExistingPrices}
-                  disabled={syncStatus === "syncing"}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400 flex items-center gap-2"
-                >
-                  {syncStatus === "syncing" ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Updating... {Math.round(syncProgress)}%
-                    </>
-                  ) : (
-                    "Update Prices"
-                  )}
-                </button>
-              )}
+            <div className="flex justify-end gap-2">
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  setSyncStatus("idle");
-                }}
-                disabled={syncStatus === "syncing"}
-                className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-50 disabled:opacity-50"
+                onClick={
+                  updateExistingPrices
+                }
+                className="bg-green-600 text-white px-4 py-2 rounded"
               >
-                {priceChanges > 0 ? "Skip" : "Close"}
+                Update Prices
+              </button>
+
+              <button
+                onClick={() =>
+                  setShowModal(false)
+                }
+                className="border px-4 py-2 rounded"
+              >
+                Close
               </button>
             </div>
           </div>

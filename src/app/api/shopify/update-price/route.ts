@@ -44,10 +44,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-/* ======================
-   NO CURRENCY CONVERSION NEEDED
-   Your Shopify API already stores prices in INR!
-====================== */
+
 
 export async function POST(req: NextRequest) {
   try {

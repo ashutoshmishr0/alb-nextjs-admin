@@ -12,6 +12,7 @@ const QUERY = `
           id
           title
           vendor
+          status
           variants(first: 1) {
             edges {
               node {
@@ -73,6 +74,7 @@ export async function GET(req: Request) {
       products.push({
         productId: product.id,
         variantId: variant?.id || null,
+        shopifyStatus: product.status,
         title: product.title,
         vendor: product.vendor,
         price: variant ? Number(variant.price) : null,
