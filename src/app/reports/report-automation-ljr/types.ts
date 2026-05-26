@@ -73,6 +73,8 @@ export interface Order {
   formattedDeliveryAt?: string;
   paymentStatus?: string;
   selected?: boolean; // ✅ NEW: For frontend selection
+  latitude?: string | null; // ✅ NEW: Latitude for location-based filtering
+  longitude?: string | null; // ✅ NEW: Longitude for location-based filtering
 
 }
 

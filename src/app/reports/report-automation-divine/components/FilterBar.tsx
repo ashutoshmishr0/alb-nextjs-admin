@@ -4,6 +4,7 @@ import { Filters } from "../types";
 // ✅ Report type options mapped to order ID prefixes
 const REPORT_TYPE_OPTIONS = [
   { label: "All Reports",                 value: "all"    },
+  { label: "Life Journey Report",        value: "#LJR-"   },
   { label: "Vedic Life Report",           value: "#VLR-"  },
   { label: "Career Report",               value: "#CR-"  },
   { label: "Vedic Health Report",         value: "#VHR-"  },

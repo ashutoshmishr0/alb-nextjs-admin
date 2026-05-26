@@ -161,44 +161,43 @@ const ReportOrders: React.FC = () => {
   };
 
   // ─── Resend Notification (Email + WhatsApp) ───────────────────────────────
-  const handleResendNotification = async (orderId: string, driveUrl: string) => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/life-journey-report/send-ljr-reports`,
-        {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ _id: orderId, driveUrl, type: "both" }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to send");
+const handleResendNotification = async (orderId: string, lat: string, lon: string, place: string) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/life-journey-report/send-ljr-reports`,
+      {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ _id: orderId, lat, lon }),
       }
+    );
 
-      await Swal.fire({
-        icon: "success",
-        title: "Sent!",
-    
-        timer: 3000,
-        showConfirmButton: false,
-      });
+    const data = await response.json();
 
-      fetchOrders(filters, page);
-    } catch (error) {
-      console.error("❌ Resend error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Failed to send",
-        text: error instanceof Error ? error.message : "Unknown error",
-        timer: 2500,
-        showConfirmButton: false,
-      });
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to send");
     }
-  };
 
+    await Swal.fire({
+      icon: "success",
+      title: "Report Generated!",
+      text: `${place} — report delivered successfully`,
+      timer: 3000,
+      showConfirmButton: false,
+    });
+
+    fetchOrders(filters, page);
+  } catch (error) {
+    console.error("❌ LJR generate error:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Failed to generate report",
+      text: error instanceof Error ? error.message : "Unknown error",
+      timer: 2500,
+      showConfirmButton: false,
+    });
+  }
+};
   // ─── Stats ────────────────────────────────────────────────────────────────
   const failedCount = rows.filter((r) => r.reportDeliveryStatus === "failed").length;
   const deliveredCount = rows.filter((r) => r.reportDeliveryStatus === "delivered").length;
