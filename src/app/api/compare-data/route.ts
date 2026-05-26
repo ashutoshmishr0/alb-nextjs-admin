@@ -138,7 +138,8 @@ shopifySku:
   ].filter((src, i, arr) => src && arr.indexOf(src) === i),
   videos: brahmaProduct.video_url ? [brahmaProduct.video_url] : [],
   certificateUrl: brahmaProduct.certificate_url || null,
-
+  variantId: shopifyMatch?.variantId ?? null,
+  stock: shopifyMatch?.stock ?? null,
   // ✅ Ye naye fields add kar
   category_name: brahmaProduct.category_name || null,
   color: brahmaProduct.color || null,
@@ -161,6 +162,8 @@ const key = normalizeSku(shopifyProduct.sku);
     return !brahmaKeys.has(key);
   })
   .map((shopifyProduct: any) => ({
+      variantId: shopifyProduct.variantId ?? null,
+  stock: shopifyProduct.stock ?? null,
     id: shopifyProduct.productId,
     title: shopifyProduct.title,
 

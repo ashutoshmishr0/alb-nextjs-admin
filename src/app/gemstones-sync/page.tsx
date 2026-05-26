@@ -21,6 +21,8 @@ type ShopifyStatus =
 
 type Product = {
   id: string;
+    stock?: number | null;
+  variantId?: string | null;
   title: string;
 sku?: string | null;
   basePrice: number;
@@ -64,7 +66,7 @@ type SyncStatus =
 ====================== */
 export default function CompareProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-
+// const [stockFixStatus, setStockFixStatus] = useState<SyncStatus>("idle");
   const [filter, setFilter] = useState<
     "ALL" | ProductStatus
   >("ALL");
@@ -255,90 +257,133 @@ export default function CompareProductsPage() {
             p.sellingPrice !== null
         );
 
-      for (
-        let i = 0;
-        i < newProducts.length;
-        i++
-      ) {
-        const p = newProducts[i];
+  //     for (
+  //       let i = 0;
+  //       i < newProducts.length;
+  //       i++
+  //     ) {
+  //       const p = newProducts[i];
 
-        const res = await fetch(
-          "/api/shopify/create-product",
-          {
-            method: "POST",
+  //       const res = await fetch(
+  //         "/api/shopify/create-product",
+  //         {
+  //           method: "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+  //           headers: {
+  //             "Content-Type":
+  //               "application/json",
+  //           },
 
-            body: JSON.stringify({
-              product_name:
-                p.title,
+  //           body: JSON.stringify({
+  //             product_name:
+  //               p.title,
+  // sku: p.sku,              // ← add this line
 
-              price:
-                p.sellingPrice,
+  //             price:
+  //               p.sellingPrice,
 
-              mrp: p.basePrice,
+  //             mrp: p.basePrice,
 
-              image_url:
-                p.images[0] ??
-                null,
+  //             image_url:
+  //               p.images[0] ??
+  //               null,
 
-              images:
-                p.images.slice(1),
+  //             images:
+  //               p.images.slice(1),
 
-              video_url:
-                p.videos[0] ??
-                null,
+  //             video_url:
+  //               p.videos[0] ??
+  //               null,
 
-              certificate_url:
-                p.certificateUrl ??
-                null,
+  //             certificate_url:
+  //               p.certificateUrl ??
+  //               null,
 
-              category_name:
-                p.category_name,
+  //             category_name:
+  //               p.category_name,
 
-              color: p.color,
+  //             color: p.color,
 
-              origin: p.origin,
+  //             origin: p.origin,
 
-              shape: p.shape,
+  //             shape: p.shape,
 
-              transparency:
-                p.transparency,
+  //             transparency:
+  //               p.transparency,
 
-              treatment:
-                p.treatment,
+  //             treatment:
+  //               p.treatment,
 
-              weight_in_carat:
-                p.weight_in_carat,
+  //             weight_in_carat:
+  //               p.weight_in_carat,
 
-              dimension:
-                p.dimension,
+  //             dimension:
+  //               p.dimension,
 
-              certifications_name:
-                p.certifications_name,
+  //             certifications_name:
+  //               p.certifications_name,
 
-              certifications_number:
-                p.certifications_number,
-            }),
-          }
-        );
+  //             certifications_number:
+  //               p.certifications_number,
+  //           }),
+  //         }
+  //       );
 
-        if (!res.ok) {
-          throw new Error(
-            `Failed to create ${p.title}`
-          );
-        }
+  //       if (!res.ok) {
+  //         throw new Error(
+  //           `Failed to create ${p.title}`
+  //         );
+  //       }
 
-        setSyncProgress(
-          ((i + 1) /
-            newProducts.length) *
-            100
-        );
-      }
+  //       setSyncProgress(
+  //         ((i + 1) /
+  //           newProducts.length) *
+  //           100
+  //       );
+  //     }
+const CONCURRENCY = 15;
 
+for (let i = 0; i < newProducts.length; i += CONCURRENCY) {
+  const batch = newProducts.slice(i, i + CONCURRENCY);
+  
+ const results = await Promise.allSettled(
+  batch.map((p) =>
+    fetch("/api/shopify/create-product", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_name: p.title,
+        sku: p.sku,
+        price: p.sellingPrice,
+        mrp: p.basePrice,
+        image_url: p.images[0] ?? null,
+        images: p.images.slice(1),
+        video_url: p.videos[0] ?? null,
+        certificate_url: p.certificateUrl ?? null,
+        category_name: p.category_name,
+        color: p.color,
+        origin: p.origin,
+        shape: p.shape,
+        transparency: p.transparency,
+        treatment: p.treatment,
+        weight_in_carat: p.weight_in_carat,
+        dimension: p.dimension,
+        certifications_name: p.certifications_name,
+        certifications_number: p.certifications_number,
+      }),
+    })
+  )
+);
+
+const failed = results.filter((r) => r.status === "rejected");
+if (failed.length > 0) {
+  console.error(`❌ ${failed.length} products failed in this batch`);
+}
+
+  setSyncProgress(
+  (Math.min(i + CONCURRENCY, newProducts.length) / newProducts.length) * 100
+);
+}
       /* ======================
          DRAFT MISSING PRODUCTS
       ====================== */
@@ -597,6 +642,7 @@ console.log(
     setSyncStatus("error");
   }
 }
+
   /* ======================
      STATS
   ====================== */
@@ -874,13 +920,20 @@ useEffect(() => {
               )}%`
             : "Sync Products"}
         </button>
-<button
+{/* <button
   onClick={pushAllSku}
   disabled={syncStatus === "syncing"}
   className="bg-blue-600 text-white px-6 py-2 rounded"
 >
   Push All SKU
-</button>
+</button> */}
+{/* <button
+  onClick={fixStock}
+  disabled={stockFixStatus === "syncing"}
+  className="bg-orange-500 text-white px-6 py-2 rounded"
+>
+  {stockFixStatus === "syncing" ? "Fixing..." : "Fix Stock (1000→1)"}
+</button> */}
         <button
           onClick={loadProducts}
           className="border px-4 py-2 rounded"

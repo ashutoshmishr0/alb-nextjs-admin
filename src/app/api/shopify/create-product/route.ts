@@ -8,6 +8,8 @@ export async function POST(req: NextRequest) {
       product_name,
       mrp,
       price,
+        sku,          // ← add this
+
       images = [],
       image_url,
       video_url,
@@ -24,10 +26,10 @@ export async function POST(req: NextRequest) {
       certifications_number,
     } = await req.json();
 
-    console.log("📦 Received:", {
-      product_name, price, mrp,
-      image_url, images, video_url, certificate_url,
-    });
+    // console.log("📦 Received:", {
+    //   product_name, price, mrp,
+    //   image_url, images, video_url, certificate_url,
+    // });
 
     if (!product_name || !price) {
       return NextResponse.json(
@@ -116,8 +118,8 @@ export async function POST(req: NextRequest) {
         src && typeof src === "string" && src.trim() !== "" && arr.indexOf(src) === i
     );
 
-    console.log("🖼️ Images + Certificate via REST:", allImages);
-    console.log("🎥 Video via GraphQL:", video_url ?? "none");
+    // console.log("🖼️ Images + Certificate via REST:", allImages);
+    // console.log("🎥 Video via GraphQL:", video_url ?? "none");
 
     /* ---------- CREATE PRODUCT (REST) ---------- */
     const shopifyBody = {
@@ -129,10 +131,12 @@ export async function POST(req: NextRequest) {
         status: "active",
         variants: [
           {
+                sku: sku || null,          // ← add this
+
             price: parsedPrice,
             compare_at_price: parsedMrp ?? null,
             inventory_management: "shopify",
-            inventory_quantity: 1000,
+            inventory_quantity: 1,
             inventory_policy: "deny",
           },
         ],
@@ -166,67 +170,66 @@ export async function POST(req: NextRequest) {
     }
 
     const productId = createData.product.id;
-    console.log("✅ Product created:", productId);
-    console.log("🖼️ Images uploaded:", createData.product.images?.length ?? 0);
+   
+
 
     /* ---------- ATTACH VIDEO (GRAPHQL) ---------- */
-    let videoAttached = false;
-    let videoErrors: any[] = [];
+    // let videoAttached = false;
+    // let videoErrors: any[] = [];
 
-    if (video_url) {
-      const gqlRes = await fetch(`https://${SHOP}/admin/api/2024-07/graphql.json`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Access-Token": TOKEN,
-        },
-        body: JSON.stringify({
-          query: `
-            mutation productCreateMedia($productId: ID!, $media: [CreateMediaInput!]!) {
-              productCreateMedia(productId: $productId, media: $media) {
-                media {
-                  ... on Video {
-                    id
-                    status
-                  }
-                }
-                mediaUserErrors {
-                  field
-                  message
-                }
-              }
-            }
-          `,
-          variables: {
-            productId: `gid://shopify/Product/${productId}`,
-            media: [
-              {
-                originalSource: video_url,
-                mediaContentType: "VIDEO",
-              },
-            ],
-          },
-        }),
-      });
+    // if (video_url) {
+    //   const gqlRes = await fetch(`https://${SHOP}/admin/api/2024-07/graphql.json`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       "X-Shopify-Access-Token": TOKEN,
+    //     },
+    //     body: JSON.stringify({
+    //       query: `
+    //         mutation productCreateMedia($productId: ID!, $media: [CreateMediaInput!]!) {
+    //           productCreateMedia(productId: $productId, media: $media) {
+    //             media {
+    //               ... on Video {
+    //                 id
+    //                 status
+    //               }
+    //             }
+    //             mediaUserErrors {
+    //               field
+    //               message
+    //             }
+    //           }
+    //         }
+    //       `,
+    //       variables: {
+    //         productId: `gid://shopify/Product/${productId}`,
+    //         media: [
+    //           {
+    //             originalSource: video_url,
+    //             mediaContentType: "VIDEO",
+    //           },
+    //         ],
+    //       },
+    //     }),
+    //   });
 
-      const gqlData = await gqlRes.json();
-      videoErrors = gqlData?.data?.productCreateMedia?.mediaUserErrors ?? [];
+    //   const gqlData = await gqlRes.json();
+    //   videoErrors = gqlData?.data?.productCreateMedia?.mediaUserErrors ?? [];
 
-      if (videoErrors.length > 0) {
-        console.error("❌ Video errors:", JSON.stringify(videoErrors, null, 2));
-      } else {
-        videoAttached = true;
-        console.log("✅ Video queued successfully");
-      }
-    }
+    //   if (videoErrors.length > 0) {
+    //     console.error("❌ Video errors:", JSON.stringify(videoErrors, null, 2));
+    //   } else {
+    //     videoAttached = true;
+    //     console.log("✅ Video queued successfully");
+    //   }
+    // }
 
     return NextResponse.json({
       success: true,
       productId,
       product: createData.product,
       imagesUploaded: createData.product.images?.length ?? 0,
-      videoAttached,
-      videoErrors,
+      
     });
 
   } catch (error) {

@@ -13,12 +13,16 @@ const QUERY = `
           title
           vendor
           status
+                    tags         
+
           variants(first: 1) {
             edges {
               node {
                 id
                 price
                 sku
+                                inventoryQuantity
+
               }
             }
           }
@@ -65,7 +69,7 @@ export async function GET(req: Request) {
     });
 
     const json : any= await res.json();
-
+console.log("Shopify response:", JSON.stringify(json).slice(0, 500));
     const data = json.data.products;
 
     data.edges.forEach((edge: any) => {
@@ -76,10 +80,14 @@ export async function GET(req: Request) {
         productId: product.id,
         variantId: variant?.id || null,
         sku: variant?.sku || null,
+          stock: variant?.inventoryQuantity || 0,
+
         shopifyStatus: product.status,
         title: product.title,
         vendor: product.vendor,
         price: variant ? Number(variant.price) : null,
+          tags: product.tags ?? [],  // ← YEH ADD KARO
+
       });
     });
 
