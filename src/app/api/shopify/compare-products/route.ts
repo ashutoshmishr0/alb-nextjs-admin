@@ -357,7 +357,14 @@ const SHOPIFY_ADMIN_TOKEN =
 // ---------------------------------------------
 // FETCH SHOPIFY PRODUCTS
 // ---------------------------------------------
-
+function normalizeTitle(
+  title: string
+) {
+  return title
+    ?.toLowerCase()
+    ?.replace(/[^a-z0-9]/g, "")
+    ?.trim();
+}
 async function fetchShopifyProducts() {
   let hasNextPage = true;
   let cursor: string | null = null;
@@ -401,6 +408,8 @@ async function fetchShopifyProducts() {
                     variants(first: 50) {
                       edges {
                         node {
+                              id
+
                           sku
                           price
                         }
@@ -439,7 +448,8 @@ async function fetchShopifyProducts() {
             product.title,
 
           sku: variantEdge.node.sku,
-
+ variant_id:
+    variantEdge.node.id,
           price:
             variantEdge.node.price,
 
@@ -626,7 +636,7 @@ export async function GET() {
 
     const skuNotMatchedProducts: any[] =
       [];
-
+const probableSkuMatches: any[] = [];
     // ---------------------------------------------
     // BRAHMA -> SHOPIFY
     // ---------------------------------------------
@@ -739,6 +749,46 @@ export async function GET() {
       "COMPARE_PRODUCTS"
     );
 
+    for (const shopifyProduct of shopifyProducts) {
+  for (const brahmaProduct of brahmaProducts) {
+    const shopifyTitle =
+      normalizeTitle(
+        shopifyProduct.product_name
+      );
+
+    const brahmaTitle =
+      normalizeTitle(
+        brahmaProduct.product_name
+      );
+
+    if (
+      shopifyTitle === brahmaTitle &&
+      shopifyProduct.sku
+        ?.trim()
+        ?.toLowerCase() !==
+        brahmaProduct.product_sku
+          ?.trim()
+          ?.toLowerCase()
+    ) {
+      probableSkuMatches.push({
+        variant_id:
+          shopifyProduct.variant_id,
+
+        shopify_sku:
+          shopifyProduct.sku,
+
+        external_sku:
+          brahmaProduct.product_sku,
+
+        shopify_product_name:
+          shopifyProduct.product_name,
+
+        external_product_name:
+          brahmaProduct.product_name,
+      });
+    }
+  }
+}
     return NextResponse.json({
       success: true,
 
@@ -766,6 +816,8 @@ export async function GET() {
 
         price_mismatches:
           priceMismatches.length,
+          probable_sku_matches:
+  probableSkuMatches.length,
       },
 
       missing_in_shopify:
@@ -782,6 +834,8 @@ export async function GET() {
 
       sku_not_matched_products:
         skuNotMatchedProducts,
+        probable_sku_matches:
+  probableSkuMatches,
     });
   } catch (error) {
     console.error(error);
