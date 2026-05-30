@@ -33,6 +33,7 @@ interface InputFieldDetail {
   categoryId: string;
   pujaName: string;
   pujaDay?: string;
+  pujaVenue?: string;
   price: string;
   adminCommission: string;
   overview: string;
@@ -152,6 +153,7 @@ const AddPujaContent = () => {
     categoryId: '',
     pujaName: '',
     pujaDay: '',
+    pujaVenue: '',
     price: '',
     adminCommission: '',
     overview: '',
@@ -350,6 +352,7 @@ const AddPujaContent = () => {
             categoryId: pujaData.categoryId || '',
             pujaName: pujaData.title || pujaData.pujaName || '',
             pujaDay: pujaData.pujaDay || '',
+            pujaVenue: pujaData.pujaVenue || '',
             price: pujaData.price?.toString() || '',
             adminCommission: pujaData.adminCommission?.toString() || '',
             overview: pujaData.overview || '',

@@ -346,7 +346,28 @@ const BasicInfoTab: React.FC<Props> = ({
     </p>
   )}
 </div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Puja Venue  
+  </label>
 
+  <input
+    type="text"
+    name="pujaVenue"
+    value={inputFieldDetail.pujaVenue || ''}
+    onChange={handleInputChange}
+    className={`w-full h-10 px-3 text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all ${
+      fieldErrors['pujaVenue'] ? 'border-red-500' : 'border-gray-300'
+    }`}
+    placeholder="e.g., Monday"
+  />
+
+  {fieldErrors['pujaVenue'] && (
+    <p className="text-red-500 text-xs mt-1.5">
+      {fieldErrors['pujaVenue']}
+    </p>
+  )}
+</div>
           {/* Mode */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
