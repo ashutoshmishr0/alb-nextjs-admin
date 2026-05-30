@@ -89,14 +89,15 @@ const CategoryPage: React.FC = () => {
 
       const res = await fetch(`${base_url}api/admin/delete_blog_category`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ categoryId }),
       });
-      
+
       if (!res.ok) throw new Error('Failed to delete category');
 
       await fetchCategories();
-      
+
       Swal.fire({
         icon: 'success',
         title: 'Deleted!',
@@ -143,20 +144,20 @@ const CategoryPage: React.FC = () => {
     () => [
       {
         name: 'S.No.',
-        selector: (_row:any, index?:number) => (index !== undefined ? index + 1 : 0),
+        selector: (_row: any, index?: number) => (index !== undefined ? index + 1 : 0),
         width: '80px',
       },
       {
         name: 'Title',
-        selector: (row:any) => row?.blog_category || '-',
+        selector: (row: any) => row?.blog_category || '-',
       },
       {
         name: 'Created Date',
-        selector: (row:any) => moment(row?.createdAt).format('DD/MM/YYYY @ hh:mm a'),
+        selector: (row: any) => moment(row?.createdAt).format('DD/MM/YYYY @ hh:mm a'),
       },
       {
         name: 'Action',
-        cell: (row:any) => (
+        cell: (row: any) => (
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <div
               onClick={() => handleEdit(row)}

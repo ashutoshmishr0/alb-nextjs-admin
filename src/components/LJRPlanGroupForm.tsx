@@ -45,7 +45,9 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
+          credentials: 'include'
+        });
         const data = await res.json();
         if (data.success) setAllPlans(data.plans);
       } catch (err) {
@@ -61,7 +63,9 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       try {
         setLoading(true);
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`, {
+          credentials: 'include'
+        }
         );
         const data = await res.json();
         if (data.success) {
@@ -128,6 +132,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
       const res = await fetch(url, {
         method,
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
@@ -199,13 +204,12 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 value={form.groupId}
                 disabled={isEdit}
                 onChange={(e) => setForm(prev => ({ ...prev, groupId: e.target.value }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                  isEdit
-                    ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
-                    : errors.groupId
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${isEdit
+                  ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
+                  : errors.groupId
                     ? 'border-red-500'
                     : 'border-gray-300'
-                }`}
+                  }`}
                 placeholder="e.g. life-journey-bundle"
               />
               {isEdit && <p className="text-xs text-gray-400 mt-1">Group ID cannot be changed</p>}
@@ -220,9 +224,8 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                  errors.title ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.title ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="e.g. Life Journey Reports"
               />
               {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
@@ -329,9 +332,8 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       <span className="text-xs text-gray-400">
                         ₹{plan.priceFinal.toLocaleString('en-IN')}
                       </span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        plan.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
-                      }`}>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${plan.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
+                        }`}>
                         {plan.isActive ? 'Active' : 'Inactive'}
                       </span>
                       <span className="text-xs text-red-500 font-medium">+ Add</span>
@@ -361,13 +363,11 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             <button
               type="button"
               onClick={() => setForm(prev => ({ ...prev, isActive: !prev.isActive }))}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                form.isActive ? 'bg-green-500' : 'bg-gray-300'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isActive ? 'bg-green-500' : 'bg-gray-300'
+                }`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                form.isActive ? 'translate-x-6' : 'translate-x-1'
-              }`} />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-1'
+                }`} />
             </button>
           </div>
         </div>

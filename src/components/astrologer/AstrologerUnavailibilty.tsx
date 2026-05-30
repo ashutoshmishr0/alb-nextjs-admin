@@ -55,11 +55,11 @@ export default function ReportsAndAvailability({ astrologerId, initialData, onUp
     { code: '#NNR-', name: 'Name Number Report' },
     { code: '#VR-', name: 'Varshphal Report' },
     { code: '#BNR-', name: 'Baby Name Report' },
-    { code : '#KSD' , name: 'Kaal Saarp Report' },
-    { code : '#BPR' , name: 'Bussiness Partner Report' },
-    { code : '#SSR' , name: 'Sade Sati Report' },
-    { code : '#WR' , name: 'Wealth Report' },
-    { code : '#GR' , name: 'Government Report' }
+    { code: '#KSD', name: 'Kaal Saarp Report' },
+    { code: '#BPR', name: 'Bussiness Partner Report' },
+    { code: '#SSR', name: 'Sade Sati Report' },
+    { code: '#WR', name: 'Wealth Report' },
+    { code: '#GR', name: 'Government Report' }
   ];
 
   const timeOptions = [
@@ -143,6 +143,7 @@ export default function ReportsAndAvailability({ astrologerId, initialData, onUp
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-report-astrologer`,
         {
           method: 'PUT',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             astrologerId,
@@ -319,11 +320,10 @@ export default function ReportsAndAvailability({ astrologerId, initialData, onUp
                 return (
                   <label
                     key={report.code}
-                    className={`flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all duration-200 border-2 ${
-                      isSelected
+                    className={`flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all duration-200 border-2 ${isSelected
                         ? 'bg-red-50 border-red-500'
                         : 'bg-white border-gray-300 hover:border-red-300'
-                    }`}
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -331,9 +331,8 @@ export default function ReportsAndAvailability({ astrologerId, initialData, onUp
                       onChange={() => toggleReportType(report.code)}
                       className="hidden"
                     />
-                    <div className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center ${
-                      isSelected ? 'bg-red-600' : 'border-2 border-gray-300'
-                    }`}>
+                    <div className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center ${isSelected ? 'bg-red-600' : 'border-2 border-gray-300'
+                      }`}>
                       {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                     </div>
                     <span className={`text-sm font-medium ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>

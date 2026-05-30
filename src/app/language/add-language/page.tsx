@@ -113,6 +113,7 @@ function AddLanguageReview() {
     const createLanguage = async (languageData: { languageName: string }) => {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/create_language`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(languageData),
         });
@@ -127,6 +128,7 @@ function AddLanguageReview() {
     const updateLanguage = async (languageData: { langId: string; languageName: string }) => {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update_language`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(languageData),
         });
@@ -254,11 +256,10 @@ function AddLanguageReview() {
                                         onChange={handleInputField}
                                         onFocus={() => handleInputFieldError("title", "")}
                                         placeholder="Enter language name"
-                                        className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 transition-colors ${
-                                            inputFieldError.title
-                                                ? 'border-red-500 focus:ring-red-200'
-                                                : 'border-gray-300 focus:ring-red-500 focus:border-red-500'
-                                        }`}
+                                        className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 transition-colors ${inputFieldError.title
+                                            ? 'border-red-500 focus:ring-red-200'
+                                            : 'border-gray-300 focus:ring-red-500 focus:border-red-500'
+                                            }`}
                                         disabled={loading}
                                     />
                                     {inputFieldError.title && (

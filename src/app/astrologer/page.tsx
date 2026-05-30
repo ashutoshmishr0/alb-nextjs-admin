@@ -75,7 +75,7 @@ export default function AstrologerPage() {
   const fetchAstrologers = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-astrologers`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-astrologers`,{credentials: 'include'});
       if (!res.ok) throw new Error("Failed to fetch");
 
       const data = await res.json();

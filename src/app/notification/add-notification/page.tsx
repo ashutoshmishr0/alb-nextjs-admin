@@ -54,12 +54,12 @@ function AddNotificationContent() {
   // Multi-page options
   const multiPageOptions: SelectOption[] = userData
     ? [
-        { value: 'all', label: 'Select All' },
-        ...userData.map(item => ({
-          value: item._id,
-          label: (type === 'Customer' ? item.customerName : item.astrologerName) || null
-        }))
-      ]
+      { value: 'all', label: 'Select All' },
+      ...userData.map(item => ({
+        value: item._id,
+        label: (type === 'Customer' ? item.customerName : item.astrologerName) || null
+      }))
+    ]
     : [];
 
   // Fetch Users
@@ -72,7 +72,9 @@ function AddNotificationContent() {
         ? '/api/admin/get-customers'
         : '/api/admin/get-all-astrologers';
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+        credentials: 'include'
+      });
       const data: ApiResponse<User[]> = await response.json();
 
       if (data.success) {
@@ -295,9 +297,8 @@ function AddNotificationContent() {
                 onChange={handleInputField}
                 onFocus={() => handleInputFieldError('title', '')}
                 maxLength={50}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                  inputFieldError.title ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputFieldError.title ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter title"
               />
               <div className="flex justify-between text-xs mt-1">
@@ -320,9 +321,8 @@ function AddNotificationContent() {
                 onChange={handleInputField}
                 onFocus={() => handleInputFieldError('description', '')}
                 rows={3}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none ${
-                  inputFieldError.description ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none ${inputFieldError.description ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter description"
               />
               {inputFieldError.description && (

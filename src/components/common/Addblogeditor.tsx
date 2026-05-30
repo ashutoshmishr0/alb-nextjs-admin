@@ -107,39 +107,39 @@ const StaticPageEditor: React.FC<StaticPageEditorProps> = ({
   const handleItalic = () => executeCommand('italic');
   const handleUnderline = () => executeCommand('underline');
   const handleStrikethrough = () => executeCommand('strikethrough');
-  
+
   const handleAlignLeft = () => executeCommand('justifyLeft');
   const handleAlignCenter = () => executeCommand('justifyCenter');
   const handleAlignRight = () => executeCommand('justifyRight');
   const handleAlignJustify = () => executeCommand('justifyFull');
-  
+
   const handleBulletList = () => executeCommand('insertUnorderedList');
   const handleNumberList = () => executeCommand('insertOrderedList');
-  
+
   const handleQuote = () => {
     executeCommand('formatBlock', 'blockquote');
     handleContentChange();
   };
-  
+
   const handleCode = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
-    
+
     const range = selection.getRangeAt(0);
     const selectedText = range.toString();
-    
+
     if (selectedText) {
       const codeHTML = `<pre class="code-block"><code>${selectedText}</code></pre><p><br></p>`;
       document.execCommand('insertHTML', false, codeHTML);
-      
+
       editorRef.current?.focus();
       handleContentChange();
     }
   };
-  
+
   const handleUndo = () => executeCommand('undo');
   const handleRedo = () => executeCommand('redo');
-  
+
   const handleLink = () => {
     const url = prompt('Enter URL:');
     if (url) {
@@ -159,43 +159,44 @@ const StaticPageEditor: React.FC<StaticPageEditorProps> = ({
   //   if (url) executeCommand('insertImage', url);
   // };
   const handleImage = () => {
-  imageInputRef.current?.click();
-};
+    imageInputRef.current?.click();
+  };
 
-const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  if (file.size > 1 * 1024 * 1024) {
-    alert('Image must be less than 1MB');
-    return;
-  }
+    if (file.size > 1 * 1024 * 1024) {
+      alert('Image must be less than 1MB');
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append('image', file);
+    const formData = new FormData();
+    formData.append('image', file);
 
-  try {
-    const res = await fetch(`${base_url}api/admin/upload-blog-image`, {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await res.json();
-const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
-    editorRef.current?.focus();
-    document.execCommand('insertImage', false, imageUrl);
-    handleContentChange();
-  } catch (err) {
-    alert('Image upload failed');
-  } finally {
-    if (imageInputRef.current) imageInputRef.current.value = '';
-  }
-};
+    try {
+      const res = await fetch(`${base_url}api/admin/upload-blog-image`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      const data = await res.json();
+      const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
+      editorRef.current?.focus();
+      document.execCommand('insertImage', false, imageUrl);
+      handleContentChange();
+    } catch (err) {
+      alert('Image upload failed');
+    } finally {
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
 
   // Handle format dropdown change
   const handleFormatChange = (event: SelectChangeEvent<string>) => {
     const format = event.target.value;
     setCurrentFormat(format);
-    
+
     const formatMap: { [key: string]: string } = {
       'Heading 1': 'h1',
       'Heading 2': 'h2',
@@ -205,7 +206,7 @@ const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
       'Heading 6': 'h6',
       'Normal': 'p',
     };
-    
+
     const tagName = formatMap[format] || 'p';
     executeCommand('formatBlock', tagName);
     handleContentChange();
@@ -216,7 +217,7 @@ const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
     if (editorRef.current) {
       const content = editorRef.current.innerHTML;
       setDescription(content);
-      
+
       // Notify parent component
       if (onDescriptionChange) {
         onDescriptionChange(content);
@@ -225,11 +226,11 @@ const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
       // Validate content
       const stripped = content.replace(/<[^>]*>/g, '').trim();
       const hasError = !stripped || content === '<p><br></p>' || content === '';
-      
+
       if (onValidationError) {
         onValidationError(hasError);
       }
-      
+
       if (hasError) {
         handleInputFieldError('description', 'Please Enter Description');
       } else {
@@ -259,45 +260,46 @@ const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
     document.addEventListener('selectionchange', handleSelectionChange);
     return () => document.removeEventListener('selectionchange', handleSelectionChange);
   }, []);
-// Block base64 paste — upload instead
-useEffect(() => {
-  const editor = editorRef.current;
-  if (!editor) return;
+  // Block base64 paste — upload instead
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
 
-  const handlePaste = async (e: ClipboardEvent) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
 
-    for (const item of Array.from(items)) {
-      if (item.type.startsWith('image/')) {
-        e.preventDefault();
-        const file = item.getAsFile();
-        if (!file) continue;
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (!file) continue;
 
-        const formData = new FormData();
-        formData.append('image', file);
+          const formData = new FormData();
+          formData.append('image', file);
 
-        try {
-          const res = await fetch(`${base_url}api/admin/upload-blog-image`, {
-            method: 'POST',
-            body: formData,
-          });
-          const data = await res.json();
-const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
+          try {
+            const res = await fetch(`${base_url}api/admin/upload-blog-image`, {
+              method: 'POST',
+              credentials: 'include',
+              body: formData,
+            });
+            const data = await res.json();
+            const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
 
-          editorRef.current?.focus();
-          document.execCommand('insertImage', false, imageUrl);
-          handleContentChange();
-        } catch (err) {
-          alert('Pasted image upload failed');
+            editorRef.current?.focus();
+            document.execCommand('insertImage', false, imageUrl);
+            handleContentChange();
+          } catch (err) {
+            alert('Pasted image upload failed');
+          }
         }
       }
-    }
-  };
+    };
 
-  editor.addEventListener('paste', handlePaste);
-  return () => editor.removeEventListener('paste', handlePaste);
-}, []);
+    editor.addEventListener('paste', handlePaste);
+    return () => editor.removeEventListener('paste', handlePaste);
+  }, []);
   const getToolbarButtonStyle = (isActive: boolean = false) => ({
     padding: '6px',
     minwidth: '36px',
@@ -443,7 +445,7 @@ const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
         onKeyUp={updateActiveFormats}
         onClick={(e) => {
           const target = e.target as HTMLElement;
-          
+
           // Prevent editing inside code blocks by selecting the entire block
           if (target.closest('pre.code-block')) {
             e.preventDefault();
@@ -455,7 +457,7 @@ const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
             selection?.addRange(range);
             return;
           }
-          
+
           // Make links clickable with Ctrl/Cmd + Click
           if (target.tagName === 'A' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
@@ -607,13 +609,13 @@ const imageUrl = `${process.env.NEXT_PUBLIC_IMAGE_URL3}/uploads/${data.image}`;
         }
           
       `}
-      <input
-  ref={imageInputRef}
-  type="file"
-  accept="image/*"
-  hidden
-  onChange={handleImageFileChange}
-/></style>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={handleImageFileChange}
+        /></style>
     </div>
   );
 };

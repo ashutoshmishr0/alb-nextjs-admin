@@ -31,21 +31,21 @@ interface Customer {
 function AddReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const editMode = searchParams.get('edit') === 'true';
   const reviewId = searchParams.get('id');
 
-  const [reviewDetail, setReviewDetail] = useState<ReviewDetail>({ 
-    customer: '', 
-    astrologer: '', 
-    rating: '', 
-    comment: '' 
+  const [reviewDetail, setReviewDetail] = useState<ReviewDetail>({
+    customer: '',
+    astrologer: '',
+    rating: '',
+    comment: ''
   });
-  const [inputFieldError, setInputFieldError] = useState<InputFieldError>({ 
-    customer: '', 
-    astrologer: '', 
-    rating: '', 
-    comment: '' 
+  const [inputFieldError, setInputFieldError] = useState<InputFieldError>({
+    customer: '',
+    astrologer: '',
+    rating: '',
+    comment: ''
   });
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(editMode);
@@ -60,9 +60,9 @@ function AddReviewContent() {
           setFetching(true);
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews?reviewId=${reviewId}`);
           const data = await response.json();
-          
+
           if (data.success && data.data) {
-            setReviewDetail({ 
+            setReviewDetail({
               customer: data.data.customerId?._id || data.data.customerId || '',
               astrologer: data.data.astrologerId?._id || data.data.astrologerId || '',
               rating: data.data.ratings?.toString() || '',
@@ -91,14 +91,16 @@ function AddReviewContent() {
     const fetchInitialData = async () => {
       try {
         // Fetch astrologers
-        const astroResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-astrologers`);
+        const astroResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-astrologers`,{credentials: 'include'});
         const astroData = await astroResponse.json();
         if (astroData.success) {
           setAstrologerListData(astroData.astrologers || []);
         }
 
         // Fetch customers
-        const customerResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/get-all-customers`);
+        const customerResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/get-all-customers`, {
+          credentials: 'include'
+        });
         const customerData = await customerResponse.json();
         if (customerData.success) {
           setCustomerListData(customerData.customers || []);
@@ -117,13 +119,13 @@ function AddReviewContent() {
   }, []);
 
   //* Handle Input Field : Error
-  const handleInputFieldError = (input: keyof InputFieldError, value: string) => 
+  const handleInputFieldError = (input: keyof InputFieldError, value: string) =>
     setInputFieldError((prev) => ({ ...prev, [input]: value }));
 
   //* Handle Input Field : Data
   const handleInputField = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'rating') {
       if (value && (parseInt(value) < 1 || parseInt(value) > 5)) {
         setInputFieldError({ ...inputFieldError, rating: 'Rating must be 1 to 5' });
@@ -131,7 +133,7 @@ function AddReviewContent() {
         setInputFieldError({ ...inputFieldError, rating: '' });
       }
     }
-    
+
     setReviewDetail({ ...reviewDetail, [name]: value });
   };
 
@@ -169,7 +171,7 @@ function AddReviewContent() {
   }) => {
     try {
       console.log("📤 Creating review with payload:", reviewData);
-      
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-review`, {
         method: 'POST',
         headers: {
@@ -184,10 +186,10 @@ function AddReviewContent() {
       });
 
       console.log("📥 Response status:", response.status);
-      
+
       const result = await response.json();
       console.log("📦 API Response:", result);
-      
+
       return result;
     } catch (error) {
       console.error('❌ Error creating review:', error);
@@ -196,18 +198,18 @@ function AddReviewContent() {
   };
 
   // ✅ FIXED: Update Review API call
-  const updateReview = async (reviewData: { 
-    ratings: string; 
-    comments: string; 
+  const updateReview = async (reviewData: {
+    ratings: string;
+    comments: string;
     reviewId: string;
   }) => {
     try {
       console.log("📤 Updating review with payload:", reviewData);
-      
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-review`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json' 
+        headers: {
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           ratings: reviewData.ratings, // ✅ Keep as string to match expected format
@@ -217,10 +219,10 @@ function AddReviewContent() {
       });
 
       console.log("📥 Response status:", response.status);
-      
+
       const result = await response.json();
       console.log("📦 API Response:", result);
-      
+
       return result;
     } catch (error) {
       console.error('❌ Error updating review:', error);
@@ -232,7 +234,7 @@ function AddReviewContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("🔄 Submit triggered, editMode:", editMode);
-    
+
     if (handleValidation()) {
       setLoading(true);
       const { astrologer, customer, rating, comment, reviewId } = reviewDetail;
@@ -245,7 +247,7 @@ function AddReviewContent() {
             comments: comment,
             reviewId: reviewId
           });
-          
+
           if (result.success) {
             await Swal.fire({
               icon: 'success',
@@ -270,7 +272,7 @@ function AddReviewContent() {
             ratings: rating,
             comments: comment
           });
-          
+
           if (result.success) {
             await Swal.fire({
               icon: 'success',
@@ -319,7 +321,7 @@ function AddReviewContent() {
           <div className="text-xl font-semibold text-gray-800">
             {editMode ? 'Edit' : 'Add'} Review
           </div>
-          <button 
+          <button
             onClick={() => router.push("/review")}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg cursor-pointer text-sm font-medium transition duration-200"
           >
@@ -340,9 +342,8 @@ function AddReviewContent() {
               onChange={handleInputField}
               onFocus={() => handleInputFieldError("astrologer", "")}
               disabled={editMode}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                inputFieldError.astrologer ? 'border-red-500' : 'border-gray-300'
-              } ${editMode ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputFieldError.astrologer ? 'border-red-500' : 'border-gray-300'
+                } ${editMode ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             >
               <option value="">-Select Astrologer-</option>
               {astrologerListData.map((item) => (
@@ -367,9 +368,8 @@ function AddReviewContent() {
               onChange={handleInputField}
               onFocus={() => handleInputFieldError("customer", "")}
               disabled={editMode}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                inputFieldError.customer ? 'border-red-500' : 'border-gray-300'
-              } ${editMode ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputFieldError.customer ? 'border-red-500' : 'border-gray-300'
+                } ${editMode ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             >
               <option value="">-Select Customer-</option>
               {customerListData.map((item) => (
@@ -396,9 +396,8 @@ function AddReviewContent() {
               value={reviewDetail.rating}
               onChange={handleInputField}
               onFocus={() => handleInputFieldError("rating", "")}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                inputFieldError.rating ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputFieldError.rating ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Enter rating (1-5)"
             />
             {inputFieldError.rating && (
@@ -417,9 +416,8 @@ function AddReviewContent() {
               value={reviewDetail.comment}
               onChange={handleInputField}
               onFocus={() => handleInputFieldError("comment", "")}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                inputFieldError.comment ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputFieldError.comment ? 'border-red-500' : 'border-gray-300'
+                }`}
               placeholder="Enter your comment"
             />
             {inputFieldError.comment && (
@@ -429,7 +427,7 @@ function AddReviewContent() {
 
           {/* Submit Button */}
           <div className="md:col-span-2 lg:col-span-3">
-            <button 
+            <button
               onClick={handleSubmit}
               disabled={loading}
               className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg cursor-pointer font-medium transition duration-200 flex items-center gap-2"

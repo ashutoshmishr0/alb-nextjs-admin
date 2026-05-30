@@ -38,15 +38,15 @@ interface ApiResponse {
 // ---------------------------------------------------------------------
 const SwitchOnSvg = () => (
   <svg width="44" height="24" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="24" rx="12" fill="#22C55E"/>
-    <circle cx="30" cy="12" r="8" fill="white"/>
+    <rect width="44" height="24" rx="12" fill="#22C55E" />
+    <circle cx="30" cy="12" r="8" fill="white" />
   </svg>
 );
 
 const SwitchOffSvg = () => (
   <svg width="44" height="24" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="24" rx="12" fill="#EF4444"/>
-    <circle cx="14" cy="12" r="8" fill="white"/>
+    <rect width="44" height="24" rx="12" fill="#EF4444" />
+    <circle cx="14" cy="12" r="8" fill="white" />
   </svg>
 );
 
@@ -68,35 +68,37 @@ export default function Customer() {
   const [inputFieldError, setInputFieldError] = useState({ amount: '', type: '' });
 
   // Fetch Customers
-    useEffect(() => {
-      const fetchCustomers = async () => {
-        try {
-          setLoading(true);
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/customers/get-all-customers`
-          );
-          const data: ApiResponse = await res.json();
-
-          if (data.success && Array.isArray(data.customers)) {
-            // Sort descending by createdAt (latest first)
-            const sortedCustomers = data.customers.sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-            setCustomerData(sortedCustomers);
-          } else {
-            console.error('Invalid API response structure', data);
-            setCustomerData([]);
-          }
-        } catch (error) {
-          console.error('Failed to fetch customers:', error);
-          setCustomerData([]);
-        } finally {
-          setLoading(false);
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/customers/get-all-customers`, {
+          credentials: 'include'
         }
-      };
+        );
+        const data: ApiResponse = await res.json();
 
-      fetchCustomers();
-    }, []);
+        if (data.success && Array.isArray(data.customers)) {
+          // Sort descending by createdAt (latest first)
+          const sortedCustomers = data.customers.sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setCustomerData(sortedCustomers);
+        } else {
+          console.error('Invalid API response structure', data);
+          setCustomerData([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch customers:', error);
+        setCustomerData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
 
   // Wallet Modal
   const handleWalletModalOpen = (id: string) => {
@@ -143,77 +145,76 @@ export default function Customer() {
   };
 
   // Delete (soft-delete) toggle
-const handleDeleteToggle = async (customer: Customer) => {
-  const currentDeleted = customer.isDeleted === 1;
-  const newDeleted = !currentDeleted;
-  const action = newDeleted ? 'delete' : 'restore';
+  const handleDeleteToggle = async (customer: Customer) => {
+    const currentDeleted = customer.isDeleted === 1;
+    const newDeleted = !currentDeleted;
+    const action = newDeleted ? 'delete' : 'restore';
 
-  const result = await Swal.fire({
-    title: `Are you sure?`,
-    text: `You want to ${action} this customer?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: newDeleted ? '#d33' : '#3085d6',
-    cancelButtonColor: '#6b7280',
-    confirmButtonText: `Yes, ${action} customer!`,
-    cancelButtonText: 'Cancel',
-  });
+    const result = await Swal.fire({
+      title: `Are you sure?`,
+      text: `You want to ${action} this customer?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: newDeleted ? '#d33' : '#3085d6',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: `Yes, ${action} customer!`,
+      cancelButtonText: 'Cancel',
+    });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  Swal.fire({
-    title: `${newDeleted ? 'Deleting' : 'Restoring'}...`,
-    text: 'Please wait',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading(),
-  });
+    Swal.fire({
+      title: `${newDeleted ? 'Deleting' : 'Restoring'}...`,
+      text: 'Please wait',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
 
-  const payload = {
-    customerId: customer._id,
-    isDeleted: newDeleted,       // 👈 this triggers isDeleted update only
-  };
+    const payload = {
+      customerId: customer._id,
+      isDeleted: newDeleted,       // 👈 this triggers isDeleted update only
+    };
 
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/change-banned-status`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      setCustomerData((prev) =>
-        prev.map((cust) =>
-          cust._id === customer._id
-            ? { ...cust, isDeleted: data.data.isDeleted }
-            : cust
-        )
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/change-banned-status`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
       );
 
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setCustomerData((prev) =>
+          prev.map((cust) =>
+            cust._id === customer._id
+              ? { ...cust, isDeleted: data.data.isDeleted }
+              : cust
+          )
+        );
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: `Customer ${newDeleted ? 'marked as deleted' : 'restored'
+            } successfully`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+      } else {
+        throw new Error(data.message || 'Failed to update delete status');
+      }
+    } catch (error: any) {
       Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: `Customer ${
-          newDeleted ? 'marked as deleted' : 'restored'
-        } successfully`,
-        timer: 2000,
-        showConfirmButton: false,
+        icon: 'error',
+        title: 'Error',
+        text: error.message,
       });
-    } else {
-      throw new Error(data.message || 'Failed to update delete status');
     }
-  } catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: error.message,
-    });
-  }
-};
+  };
 
   const handleSubmit = () => {
     if (!handleValidation()) return;
@@ -273,7 +274,9 @@ const handleDeleteToggle = async (customer: Customer) => {
   };
 
   const refetchCustomers = () => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/get-all-customers`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/customers/get-all-customers`, {
+        credentials: 'include'
+    })
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.customers)) {
@@ -427,38 +430,38 @@ const handleDeleteToggle = async (customer: Customer) => {
       width: '120px'
     },
     {
-  name: 'is Not Ban',
-  selector: (row: Customer) => (
-    <div
-      className="cursor-pointer flex justify-center"
-      onClick={() => handleStatusToggle(row)}
-    >
-      {row.banned_status ? <SwitchOffSvg /> : <SwitchOnSvg />}
-    </div>
-  ),
-  width: '120px',
-},
-{
-  name: 'is Not Delete',
-  selector: (row: Customer) => {
-    const isDeleted = row.isDeleted === 1;
-    return (
-      <div
-        className="cursor-pointer flex justify-center"
-        onClick={() => handleDeleteToggle(row)}
-      >
-        {isDeleted ? (
-          // red toggle when deleted
-          <SwitchOffSvg />
-        ) : (
-          // green toggle when active
-          <SwitchOnSvg />
-        )}
-      </div>
-    );
-  },
-  width: '120px',
-},
+      name: 'is Not Ban',
+      selector: (row: Customer) => (
+        <div
+          className="cursor-pointer flex justify-center"
+          onClick={() => handleStatusToggle(row)}
+        >
+          {row.banned_status ? <SwitchOffSvg /> : <SwitchOnSvg />}
+        </div>
+      ),
+      width: '120px',
+    },
+    {
+      name: 'is Not Delete',
+      selector: (row: Customer) => {
+        const isDeleted = row.isDeleted === 1;
+        return (
+          <div
+            className="cursor-pointer flex justify-center"
+            onClick={() => handleDeleteToggle(row)}
+          >
+            {isDeleted ? (
+              // red toggle when deleted
+              <SwitchOffSvg />
+            ) : (
+              // green toggle when active
+              <SwitchOnSvg />
+            )}
+          </div>
+        );
+      },
+      width: '120px',
+    },
     {
       name: 'Action',
       cell: (row: Customer) => (
@@ -535,9 +538,8 @@ const handleDeleteToggle = async (customer: Customer) => {
                     onChange={handleInputField}
                     onFocus={() => handleInputFieldError("amount", "")}
                     min="0"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                      inputFieldError.amount ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputFieldError.amount ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter amount"
                   />
                   {inputFieldError.amount && (
@@ -555,9 +557,8 @@ const handleDeleteToggle = async (customer: Customer) => {
                     value={inputFieldDetail.type}
                     onChange={handleInputField}
                     onFocus={() => handleInputFieldError("type", "")}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                      inputFieldError.type ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${inputFieldError.type ? 'border-red-500' : 'border-gray-300'
+                      }`}
                   >
                     <option value="" disabled>---Select Type---</option>
                     <option value="credit">Add</option>

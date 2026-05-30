@@ -113,6 +113,7 @@ export default function ReportAstrologerForm() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-report-astrologer`,
         {
           method: 'PUT',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             astrologerId,

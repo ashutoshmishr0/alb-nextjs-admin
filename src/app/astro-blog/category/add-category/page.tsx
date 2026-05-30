@@ -103,6 +103,7 @@ const AddEditCategoryContent: React.FC = () => {
         // UPDATE
         const res = await fetch(`${base_url}api/admin/update_blog_category`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             blogCategoryId: editCategory._id,
@@ -125,6 +126,7 @@ const AddEditCategoryContent: React.FC = () => {
         // CREATE
         const res = await fetch(`${base_url}api/admin/add-blog-category`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ blog_category: title }),
         });
@@ -187,9 +189,8 @@ const AddEditCategoryContent: React.FC = () => {
             onChange={handleInputField}
             onFocus={() => handleInputFieldError('title', null)}
             disabled={loading}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              inputFieldError.title ? 'border-red-600' : 'border-gray-300'
-            } ${loading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputFieldError.title ? 'border-red-600' : 'border-gray-300'
+              } ${loading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             placeholder="Enter category title"
           />
           {inputFieldError.title && (

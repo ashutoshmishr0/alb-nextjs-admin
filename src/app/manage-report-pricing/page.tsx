@@ -49,9 +49,8 @@ const PlanCard = ({
   onDelete: (planId: string, title: string) => void;
 }) => (
   <div
-    className={`bg-white rounded-xl border-2 shadow-sm p-5 flex flex-col gap-4 transition-all ${
-      plan.isActive ? 'border-gray-200' : 'border-red-200 opacity-70'
-    }`}
+    className={`bg-white rounded-xl border-2 shadow-sm p-5 flex flex-col gap-4 transition-all ${plan.isActive ? 'border-gray-200' : 'border-red-200 opacity-70'
+      }`}
   >
     <div className="flex items-start justify-between gap-2">
       <div>
@@ -63,9 +62,8 @@ const PlanCard = ({
         </h3>
       </div>
       <span
-        className={`text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0 ${
-          plan.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-        }`}
+        className={`text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0 ${plan.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}
       >
         {plan.isActive ? 'Active' : 'Inactive'}
       </span>
@@ -86,11 +84,10 @@ const PlanCard = ({
     <div className="space-y-2">
       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Add-ons</p>
 
-      <div className={`flex items-center justify-between p-2.5 rounded-lg border ${
-        plan.addons.astroConsultation.enabled
-          ? 'border-green-200 bg-green-50'
-          : 'border-gray-100 bg-gray-50'
-      }`}>
+      <div className={`flex items-center justify-between p-2.5 rounded-lg border ${plan.addons.astroConsultation.enabled
+        ? 'border-green-200 bg-green-50'
+        : 'border-gray-100 bg-gray-50'
+        }`}>
         <div>
           <p className="text-xs font-medium text-gray-700">Astro Consultation</p>
           {plan.addons.astroConsultation.enabled && (
@@ -102,20 +99,18 @@ const PlanCard = ({
             </p>
           )}
         </div>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-          plan.addons.astroConsultation.enabled
-            ? 'bg-green-100 text-green-700'
-            : 'bg-gray-200 text-gray-500'
-        }`}>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${plan.addons.astroConsultation.enabled
+          ? 'bg-green-100 text-green-700'
+          : 'bg-gray-200 text-gray-500'
+          }`}>
           {plan.addons.astroConsultation.enabled ? 'ON' : 'OFF'}
         </span>
       </div>
 
-      <div className={`flex items-center justify-between p-2.5 rounded-lg border ${
-        plan.addons.expressDelivery.enabled
-          ? 'border-green-200 bg-green-50'
-          : 'border-gray-100 bg-gray-50'
-      }`}>
+      <div className={`flex items-center justify-between p-2.5 rounded-lg border ${plan.addons.expressDelivery.enabled
+        ? 'border-green-200 bg-green-50'
+        : 'border-gray-100 bg-gray-50'
+        }`}>
         <div>
           <p className="text-xs font-medium text-gray-700">Express Delivery</p>
           {plan.addons.expressDelivery.enabled && (
@@ -124,11 +119,10 @@ const PlanCard = ({
             </p>
           )}
         </div>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-          plan.addons.expressDelivery.enabled
-            ? 'bg-green-100 text-green-700'
-            : 'bg-gray-200 text-gray-500'
-        }`}>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${plan.addons.expressDelivery.enabled
+          ? 'bg-green-100 text-green-700'
+          : 'bg-gray-200 text-gray-500'
+          }`}>
           {plan.addons.expressDelivery.enabled ? 'ON' : 'OFF'}
         </span>
       </div>
@@ -144,18 +138,17 @@ const PlanCard = ({
       </button>
       <button
         onClick={() => onToggle(plan.planId, plan.isActive)}
-        className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm rounded-lg transition-all ${
-          plan.isActive
-            ? 'text-orange-600 bg-orange-50 hover:bg-orange-100'
-            : 'text-green-600 bg-green-50 hover:bg-green-100'
-        }`}
+        className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm rounded-lg transition-all ${plan.isActive
+          ? 'text-orange-600 bg-orange-50 hover:bg-orange-100'
+          : 'text-green-600 bg-green-50 hover:bg-green-100'
+          }`}
       >
         {plan.isActive
           ? <><ToggleLeft className="w-3.5 h-3.5" /> Deactivate</>
           : <><ToggleRight className="w-3.5 h-3.5" /> Activate</>
         }
       </button>
-       <button
+      <button
         onClick={() => onDelete(plan.planId, plan.title)}
         className="p-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-all"
       >
@@ -198,9 +191,8 @@ const GroupSection = ({
           <span className="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-1">
             {group.groupId}
           </span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-            group.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${group.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            }`}>
             {group.isActive ? 'Active' : 'Inactive'}
           </span>
           <span className="text-xs text-gray-400 ml-1">
@@ -263,8 +255,8 @@ const LJRPlansList = () => {
     try {
       setLoading(true);
       const [plansRes, groupsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, { credentials: 'include' }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups`, { credentials: 'include' }),
       ]);
       const plansData = await plansRes.json();
       const groupsData = await groupsRes.json();
@@ -295,7 +287,10 @@ const LJRPlansList = () => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans/${planId}/toggle`,
-        { method: 'PATCH' }
+        {
+          method: 'PATCH',
+          credentials: 'include'
+        }
       );
       const data = await res.json();
       if (data.success) {
@@ -335,7 +330,7 @@ const LJRPlansList = () => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`,
-        { method: 'DELETE' }
+        { method: 'DELETE', credentials: 'include' }
       );
       const data = await res.json();
       if (data.success) {
@@ -347,67 +342,68 @@ const LJRPlansList = () => {
     }
   };
 
-const handleDelete = async (planId: string, title: string) => {
-  const result = await Swal.fire({
-    title: 'Deactivate Plan?',
-    text: `"${title}" will be deactivated.`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#d1d5db',
-    confirmButtonText: 'Deactivate',
-    cancelButtonText: 'Cancel',
-    reverseButtons: true,
-  });
+  const handleDelete = async (planId: string, title: string) => {
+    const result = await Swal.fire({
+      title: 'Deactivate Plan?',
+      text: `"${title}" will be deactivated.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#d1d5db',
+      confirmButtonText: 'Deactivate',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+    });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans/${planId}`,
-      {
-        method: 'DELETE',
-      }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setPlans(prev =>
-        prev.map(p =>
-          p.planId === planId
-            ? { ...p, isActive: false }
-            : p
-        )
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans/${planId}`,
+        {
+          method: 'DELETE',
+          credentials: 'include'
+        }
       );
 
-      setGroups(prev =>
-        prev.map(g => ({
-          ...g,
-          plans: g.plans.map(p =>
+      const data = await res.json();
+
+      if (data.success) {
+        setPlans(prev =>
+          prev.map(p =>
             p.planId === planId
               ? { ...p, isActive: false }
               : p
-          ),
-        }))
-      );
+          )
+        );
+
+        setGroups(prev =>
+          prev.map(g => ({
+            ...g,
+            plans: g.plans.map(p =>
+              p.planId === planId
+                ? { ...p, isActive: false }
+                : p
+            ),
+          }))
+        );
+
+        Swal.fire(
+          'Deactivated!',
+          `"${title}" has been deactivated.`,
+          'success'
+        );
+      }
+    } catch (err) {
+      console.error('Error deactivating plan:', err);
 
       Swal.fire(
-        'Deactivated!',
-        `"${title}" has been deactivated.`,
-        'success'
+        'Error',
+        'Something went wrong while deactivating the plan.',
+        'error'
       );
     }
-  } catch (err) {
-    console.error('Error deactivating plan:', err);
-
-    Swal.fire(
-      'Error',
-      'Something went wrong while deactivating the plan.',
-      'error'
-    );
-  }
-};
+  };
   // Plans that are not in any group
   const groupedPlanIds = new Set(groups.flatMap(g => g.plans.map(p => p.planId)));
   const ungroupedPlans = plans
@@ -458,21 +454,19 @@ const handleDelete = async (planId: string, title: string) => {
       <div className="flex items-center gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
         <button
           onClick={() => setView('grouped')}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-            view === 'grouped'
-              ? 'bg-white text-gray-800 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'grouped'
+            ? 'bg-white text-gray-800 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+            }`}
         >
           Grouped
         </button>
         <button
           onClick={() => setView('all')}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-            view === 'all'
-              ? 'bg-white text-gray-800 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'all'
+            ? 'bg-white text-gray-800 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700'
+            }`}
         >
           All Plans ({plans.length})
         </button>

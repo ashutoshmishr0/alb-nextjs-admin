@@ -66,7 +66,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       try {
         setLoading(true);
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`,
+          { credentials: 'include' }
         );
         const data = await res.json();
         const plan = data.plans?.find((p: any) => p.planId === planId);
@@ -138,47 +139,48 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
       const body = isEdit
         ? {
-            priceOriginal: Number(form.priceOriginal),
-            priceFinal: Number(form.priceFinal),
-            isActive: form.isActive,
-            addons: {
-              astroConsultation: {
-                enabled: form.addons.astroConsultation.enabled,
-                price: Number(form.addons.astroConsultation.price),
-                priceOriginal: Number(form.addons.astroConsultation.priceOriginal),
-                label: form.addons.astroConsultation.label,
-              },
-              expressDelivery: {
-                enabled: form.addons.expressDelivery.enabled,
-                price: Number(form.addons.expressDelivery.price),
-                label: form.addons.expressDelivery.label,
-              },
+          priceOriginal: Number(form.priceOriginal),
+          priceFinal: Number(form.priceFinal),
+          isActive: form.isActive,
+          addons: {
+            astroConsultation: {
+              enabled: form.addons.astroConsultation.enabled,
+              price: Number(form.addons.astroConsultation.price),
+              priceOriginal: Number(form.addons.astroConsultation.priceOriginal),
+              label: form.addons.astroConsultation.label,
             },
-          }
+            expressDelivery: {
+              enabled: form.addons.expressDelivery.enabled,
+              price: Number(form.addons.expressDelivery.price),
+              label: form.addons.expressDelivery.label,
+            },
+          },
+        }
         : {
-            planId: form.planId,
-            title: form.title,
-            priceOriginal: Number(form.priceOriginal),
-            priceFinal: Number(form.priceFinal),
-            sortOrder: Number(form.sortOrder) || 0,
-            isActive: form.isActive,
-            addons: {
-              astroConsultation: {
-                enabled: form.addons.astroConsultation.enabled,
-                price: Number(form.addons.astroConsultation.price),
-                priceOriginal: Number(form.addons.astroConsultation.priceOriginal),
-                label: form.addons.astroConsultation.label,
-              },
-              expressDelivery: {
-                enabled: form.addons.expressDelivery.enabled,
-                price: Number(form.addons.expressDelivery.price),
-                label: form.addons.expressDelivery.label,
-              },
+          planId: form.planId,
+          title: form.title,
+          priceOriginal: Number(form.priceOriginal),
+          priceFinal: Number(form.priceFinal),
+          sortOrder: Number(form.sortOrder) || 0,
+          isActive: form.isActive,
+          addons: {
+            astroConsultation: {
+              enabled: form.addons.astroConsultation.enabled,
+              price: Number(form.addons.astroConsultation.price),
+              priceOriginal: Number(form.addons.astroConsultation.priceOriginal),
+              label: form.addons.astroConsultation.label,
             },
-          };
+            expressDelivery: {
+              enabled: form.addons.expressDelivery.enabled,
+              price: Number(form.addons.expressDelivery.price),
+              label: form.addons.expressDelivery.label,
+            },
+          },
+        };
 
       const res = await fetch(url, {
         method,
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
@@ -248,9 +250,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                   type="text"
                   value={form.planId}
                   onChange={(e) => setForm(prev => ({ ...prev, planId: e.target.value }))}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                    errors.planId ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.planId ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="e.g. journey-report"
                 />
                 {errors.planId && <p className="text-red-500 text-xs mt-1">{errors.planId}</p>}
@@ -266,9 +267,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                    errors.title ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.title ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="e.g. Life Journey Report"
                 />
                 {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
@@ -325,9 +325,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                   ...prev,
                   priceOriginal: e.target.value === '' ? '' : Number(e.target.value)
                 }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                  errors.priceOriginal ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.priceOriginal ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="e.g. 1996"
                 min="0"
               />
@@ -347,9 +346,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                   ...prev,
                   priceFinal: e.target.value === '' ? '' : Number(e.target.value)
                 }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                  errors.priceFinal ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.priceFinal ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="e.g. 996"
                 min="0"
               />
@@ -381,11 +379,10 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           <div className="space-y-4">
 
             {/* Astro Consultation */}
-            <div className={`border-2 rounded-xl p-4 transition-all ${
-              form.addons.astroConsultation.enabled
-                ? 'border-green-300 bg-green-50'
-                : 'border-gray-200 bg-gray-50'
-            }`}>
+            <div className={`border-2 rounded-xl p-4 transition-all ${form.addons.astroConsultation.enabled
+              ? 'border-green-300 bg-green-50'
+              : 'border-gray-200 bg-gray-50'
+              }`}>
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="font-medium text-gray-800 text-sm">Astro Consultation</p>
@@ -404,13 +401,11 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       }
                     }
                   }))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    form.addons.astroConsultation.enabled ? 'bg-green-500' : 'bg-gray-300'
-                  }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.addons.astroConsultation.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    form.addons.astroConsultation.enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.addons.astroConsultation.enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
                 </button>
               </div>
 
@@ -434,9 +429,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                           }
                         }
                       }))}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                        errors.astroPriceOriginal ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.astroPriceOriginal ? 'border-red-500' : 'border-gray-300'
+                        }`}
                       placeholder="e.g. 5100"
                       min="0"
                     />
@@ -462,9 +456,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                           }
                         }
                       }))}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                        errors.astroPrice ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.astroPrice ? 'border-red-500' : 'border-gray-300'
+                        }`}
                       placeholder="e.g. 904"
                       min="0"
                     />
@@ -477,11 +470,10 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             </div>
 
             {/* Express Delivery */}
-            <div className={`border-2 rounded-xl p-4 transition-all ${
-              form.addons.expressDelivery.enabled
-                ? 'border-green-300 bg-green-50'
-                : 'border-gray-200 bg-gray-50'
-            }`}>
+            <div className={`border-2 rounded-xl p-4 transition-all ${form.addons.expressDelivery.enabled
+              ? 'border-green-300 bg-green-50'
+              : 'border-gray-200 bg-gray-50'
+              }`}>
               <div className="flex items-center justify-between mb-1">
                 <div>
                   <p className="font-medium text-gray-800 text-sm">Express Delivery</p>
@@ -500,13 +492,11 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       }
                     }
                   }))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    form.addons.expressDelivery.enabled ? 'bg-green-500' : 'bg-gray-300'
-                  }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.addons.expressDelivery.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                    form.addons.expressDelivery.enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.addons.expressDelivery.enabled ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
                 </button>
               </div>
 
@@ -529,9 +519,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                         }
                       }
                     }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
-                      errors.expressPrice ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.expressPrice ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="e.g. 149"
                     min="0"
                   />
@@ -556,13 +545,11 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             <button
               type="button"
               onClick={() => setForm(prev => ({ ...prev, isActive: !prev.isActive }))}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                form.isActive ? 'bg-green-500' : 'bg-gray-300'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isActive ? 'bg-green-500' : 'bg-gray-300'
+                }`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                form.isActive ? 'translate-x-6' : 'translate-x-1'
-              }`} />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-1'
+                }`} />
             </button>
           </div>
         </div>

@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Tooltip } from '@mui/material';
 import Swal from 'sweetalert2';
 import MainDatatable from '@/components/common/MainDatatable';
-import { EditSvg, ViewSvg, DeleteSvg} from '@/components/svgs/page';
+import { EditSvg, ViewSvg, DeleteSvg } from '@/components/svgs/page';
 import { DeepSearchSpace } from '@/utils/common-function/index';
 
 // Types
@@ -36,22 +36,22 @@ interface Report {
 // SVG Toggles (same as customer page)
 const SwitchOnSvg = () => (
   <svg width="44" height="24" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="24" rx="12" fill="#22C55E"/>
-    <circle cx="30" cy="12" r="8" fill="white"/>
+    <rect width="44" height="24" rx="12" fill="#22C55E" />
+    <circle cx="30" cy="12" r="8" fill="white" />
   </svg>
 );
 
 const SwitchOffSvg = () => (
   <svg width="44" height="24" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="44" height="24" rx="12" fill="#EF4444"/>
-    <circle cx="14" cy="12" r="8" fill="white"/>
+    <rect width="44" height="24" rx="12" fill="#EF4444" />
+    <circle cx="14" cy="12" r="8" fill="white" />
   </svg>
 );
 
 // Drag Handle SVG
 const DragHandleSvg = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M9 6L9 18M15 6L15 18" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M9 6L9 18M15 6L15 18" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 
@@ -70,7 +70,7 @@ export default function ReportsAdmin() {
       setLoading(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/all`);
       const data = await response.json();
-      
+
       if (data.success && Array.isArray(data.reports)) {
         setReports(data.reports);
       } else {
@@ -182,7 +182,7 @@ export default function ReportsAdmin() {
 
       if (response.ok && data.success) {
         setReports(prev => prev.filter(r => r._id !== report._id));
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
@@ -211,28 +211,28 @@ export default function ReportsAdmin() {
   };
 
   // Drag and Drop Handlers
-    const handleDragStart = (index: number) => {
+  const handleDragStart = (index: number) => {
     draggedItemIndex.current = index;
-    };
+  };
 
-    const handleDragOver = (e: React.DragEvent, index: number) => {
+  const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedItemIndex.current === null || draggedItemIndex.current === index) return;
 
     setDraggedReports(prev => {
-        const newReports = [...prev];
-        const draggedItem = newReports[draggedItemIndex.current!];
-        newReports.splice(draggedItemIndex.current!, 1);
-        newReports.splice(index, 0, draggedItem);
-        return newReports;
+      const newReports = [...prev];
+      const draggedItem = newReports[draggedItemIndex.current!];
+      newReports.splice(draggedItemIndex.current!, 1);
+      newReports.splice(index, 0, draggedItem);
+      return newReports;
     });
 
     draggedItemIndex.current = index; // ref update → no re-render
-    };
+  };
 
-    const handleDragEnd = () => {
+  const handleDragEnd = () => {
     draggedItemIndex.current = null;
-    };
+  };
 
   // Save New Order
   const handleSaveOrder = async () => {
@@ -252,6 +252,7 @@ export default function ReportsAdmin() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders/bulk`, {
         method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orders })
       });
@@ -262,7 +263,7 @@ export default function ReportsAdmin() {
         // Update local state with new orders
         setReports(draggedReports);
         setOrderModal(false);
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Success!',
@@ -299,7 +300,7 @@ export default function ReportsAdmin() {
             r._id === report._id ? { ...r, sectionPriority: newSection } : r
           )
         );
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Updated!',
@@ -544,12 +545,12 @@ export default function ReportsAdmin() {
                       <div className="cursor-grab active:cursor-grabbing">
                         <DragHandleSvg />
                       </div>
-                      
+
                       {/* Order Number */}
                       <div className="w-12 text-center">
                         <span className="text-lg font-bold text-blue-600">#{index + 1}</span>
                       </div>
-                      
+
                       {/* Image */}
                       <div className="relative w-12 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
                         <Image
@@ -560,7 +561,7 @@ export default function ReportsAdmin() {
                           sizes="48px"
                         />
                       </div>
-                      
+
                       {/* Info */}
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{report.title}</h3>
@@ -570,15 +571,14 @@ export default function ReportsAdmin() {
                           <span className="text-xs text-gray-500">₹{report.price}</span>
                         </div>
                       </div>
-                      
+
                       {/* Section Badge */}
                       <div className="flex-shrink-0">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          report.sectionPriority === 'hero' ? 'bg-purple-100 text-purple-800' :
+                        <span className={`px-2 py-1 text-xs rounded-full ${report.sectionPriority === 'hero' ? 'bg-purple-100 text-purple-800' :
                           report.sectionPriority === 'featured' ? 'bg-yellow-100 text-yellow-800' :
-                          report.sectionPriority === 'regular' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                            report.sectionPriority === 'regular' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                          }`}>
                           {report.sectionPriority}
                         </span>
                       </div>
