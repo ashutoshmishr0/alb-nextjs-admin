@@ -8,8 +8,8 @@ interface Props {
   imageSrc: string;
 }
 
-const CROP_SIZE = 220;
-const OUT = 300;
+const CROP_SIZE = 500;
+const OUT = 500;
 
 export default function ImageCropper({ onCropComplete, onClose, imageSrc }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,7 +52,7 @@ export default function ImageCropper({ onCropComplete, onClose, imageSrc }: Prop
     ctx.clearRect(0, 0, 72, 72);
     ctx.save();
     ctx.beginPath();
-    ctx.arc(36, 36, 36, 0, Math.PI * 2);
+    ctx.rect(0, 0, 72, 72); 
     ctx.clip();
     ctx.drawImage(img, sx, sy, sw, sw, 0, 0, 72, 72);
     ctx.restore();
@@ -116,11 +116,12 @@ export default function ImageCropper({ onCropComplete, onClose, imageSrc }: Prop
     const sw = size * scale;
 
     const canvas = document.createElement('canvas');
-    canvas.width = OUT; canvas.height = OUT;
+    canvas.width = OUT; 
+    canvas.height = OUT;
     const ctx = canvas.getContext('2d')!;
-    ctx.beginPath();
-    ctx.arc(OUT / 2, OUT / 2, OUT / 2, 0, Math.PI * 2);
-    ctx.clip();
+    // ctx.beginPath();
+    // ctx.arc(OUT / 2, OUT / 2, OUT / 2, 0, Math.PI * 2);
+    // ctx.clip();
     ctx.drawImage(img, sx, sy, sw, sw, 0, 0, OUT, OUT);
     canvas.toBlob(blob => { if (blob) onCropComplete(blob); }, 'image/jpeg', 0.92);
   };
