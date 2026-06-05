@@ -21,7 +21,7 @@ import {
   FaEnvelope,
   FaRoute
 } from 'react-icons/fa';
-// import ManageRoutes from '@/components/admin/ManageRoutes';
+import ManageRoutes from '@/components/admin/ManageRoutes';
 import AssignRoutes from '@/components/admin/AssignRoutes';
 
 interface Admin {
@@ -546,7 +546,7 @@ export default function SuperAdminDashboard() {
                   Change Password
                 </button>
 
-                 {/* <button
+                 <button
                   onClick={() => setActiveTab('routes')}
                   className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition ${
                     activeTab === 'routes'
@@ -556,7 +556,7 @@ export default function SuperAdminDashboard() {
                 >
                   <FaRoute className="mr-3 h-5 w-5" />
                   Manage Routes
-                </button> */}
+                </button>
                 
                 <button
                   onClick={() => setActiveTab('assignRoutes')}
@@ -873,7 +873,7 @@ export default function SuperAdminDashboard() {
               </div>
             )}
 
-            {/* {activeTab === 'routes' && <ManageRoutes />} */}
+            {activeTab === 'routes' && <ManageRoutes />}
             
             {activeTab === 'assignRoutes' && <AssignRoutes />}
           </div>

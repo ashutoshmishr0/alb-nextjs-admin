@@ -451,18 +451,18 @@ export default function ReportsAdmin() {
       name: 'Action',
       cell: (row: Report) => (
         <div className="flex gap-3 justify-center items-center">
-          {/* <div
+          <div
             onClick={() => router.push(`/reports/view-report?id=${row._id}`)}
             className="cursor-pointer hover:text-blue-600 transition-colors"
           >
             <ViewSvg />
-          </div> */}
-          {/* <div
+          </div>
+          <div
             onClick={() => router.push(`/reports/change-reports-order/edit-report?id=${row._id}`)}
             className="cursor-pointer hover:text-green-600 transition-colors"
           >
             <EditSvg />
-          </div> */}
+          </div>
           <div
             onClick={() => handleDeleteReport(row)}
             className="cursor-pointer hover:text-red-600 transition-colors"
