@@ -25,6 +25,7 @@ interface FormState {
       label: string;
     };
   };
+  features: string[];
 }
 
 const defaultForm: FormState = {
@@ -47,6 +48,7 @@ const defaultForm: FormState = {
       label: 'Express Delivery',
     },
   },
+  features: [],
 };
 
 const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
@@ -92,6 +94,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 label: plan.addons.expressDelivery.label || 'Express Delivery',
               },
             },
+            features: plan.features || [],
           });
         }
       } catch (err) {
@@ -155,6 +158,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
               label: form.addons.expressDelivery.label,
             },
           },
+            features: form.features,
         }
         : {
           planId: form.planId,
@@ -176,6 +180,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
               label: form.addons.expressDelivery.label,
             },
           },
+            features: form.features,
         };
 
       const res = await fetch(url, {
@@ -372,6 +377,55 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             </div>
           )}
         </div>
+
+        {/* Features */}
+<div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="font-semibold text-gray-800">Features (What's Included)</h2>
+    <button
+      type="button"
+      onClick={() => setForm(prev => ({ ...prev, features: [...prev.features, ''] }))}
+      className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+    >
+      + Add Feature
+    </button>
+  </div>
+
+  {form.features.length === 0 && (
+    <p className="text-xs text-gray-400 text-center py-4">
+      No features added yet. Click "+ Add Feature" to begin.
+    </p>
+  )}
+
+        <div className="space-y-2">
+          {form.features.map((feature, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-xs text-gray-400 w-5 shrink-0">{i + 1}.</span>
+              <input
+                type="text"
+                value={feature}
+                onChange={(e) => {
+                  const updated = [...form.features];
+                  updated[i] = e.target.value;
+                  setForm(prev => ({ ...prev, features: updated }));
+                }}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
+                placeholder={`Feature ${i + 1}`}
+              />
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({
+                  ...prev,
+                  features: prev.features.filter((_, idx) => idx !== i)
+                }))}
+                className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
 
         {/* Add-ons */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
