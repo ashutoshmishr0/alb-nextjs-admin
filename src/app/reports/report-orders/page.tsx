@@ -254,7 +254,7 @@ const ReportOrders: React.FC = () => {
       
       const statsResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/date?${statsQs.toString()}`,
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders() ,           credentials: "include" }
       );
       
       if (statsResponse.ok) {
@@ -292,7 +292,7 @@ const fetchFilteredStats = async (currentFilters: Filters) => {
 
     const statsResponse = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/stats?${statsQs.toString()}`,
-      { headers: getAuthHeaders() }
+      { headers: getAuthHeaders(), credentials: "include"}
     );
     
     if (statsResponse.ok) {
@@ -344,7 +344,7 @@ const debouncedFetch = useMemo(() =>
       // Fetch orders
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders?${qs.toString()}`,
-        { headers: getAuthHeaders() }
+        { headers: getAuthHeaders()          ,credentials: "include", }
       );
 
       if (!response.ok) throw new Error("Failed to fetch");
@@ -613,6 +613,7 @@ const debouncedFetch = useMemo(() =>
         {
           method: "PATCH",
           headers: getAuthHeaders(),
+          credentials: "include",
           body: JSON.stringify(editPayload),
         }
       );
@@ -728,7 +729,7 @@ const debouncedFetch = useMemo(() =>
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/export?${qs.toString()}`,
-        { method: "POST", headers: { Authorization: "Bearer " + token } }
+        { method: "POST",credentials: "include", headers: { Authorization: "Bearer " + token } }
       );
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
