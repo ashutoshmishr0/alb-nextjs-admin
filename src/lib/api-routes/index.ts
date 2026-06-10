@@ -1,5 +1,9 @@
 // export let base_url: string, img_url: string, api_url: string;
-export const base_url = "";
+export const base_url = process.env.NEXT_PUBLIC_API_URL
+  ? (process.env.NEXT_PUBLIC_API_URL.endsWith('/')
+    ? process.env.NEXT_PUBLIC_API_URL
+    : `${process.env.NEXT_PUBLIC_API_URL}/`)
+  : "http://localhost:3003/";
 
 export const img_url = process.env.NEXT_PUBLIC_IMAGE_URL
   ? (process.env.NEXT_PUBLIC_IMAGE_URL.endsWith('/')
@@ -7,7 +11,7 @@ export const img_url = process.env.NEXT_PUBLIC_IMAGE_URL
     : `${process.env.NEXT_PUBLIC_IMAGE_URL}/`)
   : "https://api.acharyalavbhushan.com/";
 
-export const api_url = "";
+export const api_url = ""
 
 
 //! Dashboard
