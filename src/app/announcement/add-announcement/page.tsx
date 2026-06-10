@@ -63,7 +63,7 @@ const AddAnnouncement = () => {
                             // Fetch announcement data if description is not in localStorage
                             setFetching(true);
                             const response = await fetch(
-                                `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-announcement/${editData.id}`
+                                `/api/admin/get-announcement/${editData.id}`
                             );
                             
                             if (!response.ok) {
@@ -152,7 +152,7 @@ const AddAnnouncement = () => {
                     <div className="p-6">
                         <AnnouncementPageEditor
                             initialContent={initialContent}
-                            createEndpoint={`${process.env.NEXT_PUBLIC_API_URL}/api/admin/${editMode ? 'update-announcement' : 'add-announcement'}`}
+                            createEndpoint={`/api/admin/${editMode ? 'update-announcement' : 'add-announcement'}`}
                             announcementId={announcementId || undefined}
                             editMode={editMode}
                             loading={loading}

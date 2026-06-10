@@ -296,7 +296,7 @@ const MyBooking = () => {
       setAdminsLoading(true);
       const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-admins`,
+        `/api/admin/get-all-admins`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await res.json();

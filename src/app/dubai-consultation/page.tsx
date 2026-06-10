@@ -64,7 +64,7 @@ const filteredData = useMemo(() => {
     try {
       setIsLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/dubai-consultation`
+        `/api/admin/dubai-consultation`
       );
       if (!res.ok) throw new Error("Failed to fetch");
 

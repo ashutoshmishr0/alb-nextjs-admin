@@ -64,7 +64,7 @@ const Regex_Accept_Alpha = /^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/
       if (editMode && expertiseId) {
         try {
           setFetching(true);
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-main-expertise`, {
+          const response = await fetch(`/api/admin/get-all-main-expertise`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -195,7 +195,7 @@ const Regex_Accept_Alpha = /^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/
   // API call functions
   const createMainExpertise = async (formData: FormData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-main-expertise`, {
+      const response = await fetch(`/api/admin/add-main-expertise`, {
         method: 'POST',
         body: formData,
       });
@@ -208,7 +208,7 @@ const Regex_Accept_Alpha = /^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/
 
   const updateMainExpertise = async (formData: FormData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-main-expertise`, {
+      const response = await fetch(`/api/admin/update-main-expertise`, {
         method: 'POST',
         body: formData,
       });

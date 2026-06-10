@@ -35,7 +35,7 @@ function AddLanguageReview() {
                 try {
                     setFetching(true);
                     const response = await fetch(
-                        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_language/${languageId}`
+                        `/api/admin/get_language/${languageId}`
                     );
 
                     if (!response.ok) {
@@ -111,7 +111,7 @@ function AddLanguageReview() {
 
     // API call functions
     const createLanguage = async (languageData: { languageName: string }) => {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/create_language`, {
+        const response = await fetch(`/api/admin/create_language`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -126,7 +126,7 @@ function AddLanguageReview() {
     };
 
     const updateLanguage = async (languageData: { langId: string; languageName: string }) => {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update_language`, {
+        const response = await fetch(`/api/admin/update_language`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },

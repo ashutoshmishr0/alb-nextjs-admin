@@ -68,7 +68,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       try {
         setLoading(true);
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`,
+          `/api/admin/plans`,
           { credentials: 'include' }
         );
         const data = await res.json();

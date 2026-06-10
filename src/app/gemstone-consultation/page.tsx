@@ -85,7 +85,7 @@ export default function GemstoneConsultationPage() {
         params.set('startDate', convertToAPIFormat(filters.startDate));
         params.set('endDate', convertToAPIFormat(filters.endDate));
         
-        const url = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/gemstones-consultation-date?${params.toString()}`;
+        const url = `/api/admin/gemstones-consultation-date?${params.toString()}`;
         const response = await fetch(url);
         
         if (!response.ok) {

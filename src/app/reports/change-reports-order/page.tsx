@@ -68,7 +68,7 @@ export default function ReportsAdmin() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/all`);
+      const response = await fetch(`/api/admin/reports/all`);
       const data = await response.json();
 
       if (data.success && Array.isArray(data.reports)) {
@@ -117,7 +117,7 @@ export default function ReportsAdmin() {
     });
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/${report._id}`, {
+      const response = await fetch(`/api/admin/${report._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: newStatus })
@@ -174,7 +174,7 @@ export default function ReportsAdmin() {
     });
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/${report._id}`, {
+      const response = await fetch(`/api/admin/${report._id}`, {
         method: 'DELETE'
       });
 
@@ -250,7 +250,7 @@ export default function ReportsAdmin() {
     }));
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders/bulk`, {
+      const response = await fetch(`/api/admin/orders/bulk`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -286,7 +286,7 @@ export default function ReportsAdmin() {
   // Update Section Priority
   const handleUpdateSection = async (report: Report, newSection: Report['sectionPriority']) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/${report._id}`, {
+      const response = await fetch(`/api/admin/${report._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sectionPriority: newSection })

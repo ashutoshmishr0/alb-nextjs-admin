@@ -28,7 +28,7 @@ const Skill = () => {
   const getSkill = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-skill`);
+      const response = await fetch(`/api/admin/get-skill`);
       const data: ApiResponse = await response.json();
       
       if (data.success) {
@@ -74,7 +74,7 @@ const Skill = () => {
           }
         });
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-skill`, {
+        const response = await fetch(`/api/admin/delete-skill`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -274,8 +274,8 @@ const LJRPlansList = () => {
     try {
       setLoading(true);
       const [plansRes, groupsRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, { credentials: 'include' }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups`, { credentials: 'include' }),
+        fetch(`/api/admin/plans`, { credentials: 'include' }),
+        fetch(`/api/admin/plan-groups`, { credentials: 'include' }),
       ]);
       const plansData = await plansRes.json();
       const groupsData = await groupsRes.json();
@@ -305,7 +305,7 @@ const LJRPlansList = () => {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans/${planId}/toggle`,
+        `/api/admin/plans/${planId}/toggle`,
         {
           method: 'PATCH',
           credentials: 'include'
@@ -348,7 +348,7 @@ const LJRPlansList = () => {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`,
+        `/api/admin/plan-groups/${groupId}`,
         { method: 'DELETE', credentials: 'include' }
       );
       const data = await res.json();
@@ -378,7 +378,7 @@ const LJRPlansList = () => {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans/${planId}`,
+        `/api/admin/plans/${planId}`,
         {
           method: 'DELETE',
           credentials: 'include'

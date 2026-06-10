@@ -38,7 +38,7 @@
 //     const getAllAnnouncements = async () => {
 //         try {
 //             setLoading(true);
-//             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-anouncement`);
+//             const response = await fetch(`/api/admin/get-all-anouncement`);
             
 //             if (!response.ok) {
 //                 throw new Error('Failed to fetch announcements');
@@ -86,7 +86,7 @@
 //                     }
 //                 });
 
-//                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-announcement`, {
+//                 const response = await fetch(`/api/admin/delete-announcement`, {
 //                     method: 'POST',
 //                     headers: {
 //                         'Content-Type': 'application/json',

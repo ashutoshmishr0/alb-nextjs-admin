@@ -188,7 +188,7 @@ const AddCustomerContent = () => {
     if (image.bytes) fd.append('image', image.bytes);
 
     const url = isEditMode
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-customer-data`
+      ? `/api/admin/update-customer-data`
       : `${process.env.NEXT_PUBLIC_API_URL}/api/customers/customer-signup`;
 
     try {

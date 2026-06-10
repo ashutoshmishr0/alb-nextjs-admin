@@ -86,7 +86,7 @@ function AddCategoryContent(){
   // API call functions
   const createLiveSessionCategory = async (categoryData: { categoryName: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/create_live_session_category`, {
+      const response = await fetch(`/api/admin/create_live_session_category`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categoryData),
@@ -100,7 +100,7 @@ function AddCategoryContent(){
 
   const updateLiveSessionCategory = async (categoryData: { categoryId: string; categoryName: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update_live_session_category`, {
+      const response = await fetch(`/api/admin/update_live_session_category`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categoryData),

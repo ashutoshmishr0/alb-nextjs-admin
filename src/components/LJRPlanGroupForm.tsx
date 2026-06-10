@@ -68,7 +68,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
+        const res = await fetch(`/api/admin/plans`, {
           credentials: 'include'
         });
         const data = await res.json();
@@ -86,7 +86,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       try {
         setLoading(true);
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`, {
+          `/api/admin/plan-groups/${groupId}`, {
           credentials: 'include'
         }
         );
@@ -174,8 +174,8 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     setSaving(true);
     try {
       const url = isEdit
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups`;
+        ? `/api/admin/plan-groups/${groupId}`
+        : `/api/admin/plan-groups`;
 
       const method = isEdit ? 'PUT' : 'POST';
 

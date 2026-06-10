@@ -86,7 +86,7 @@ const ReportOrders: React.FC = () => {
       });
 
       // ✅ Updated API endpoint
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-reports-divine?${qs.toString()}`;
+      const apiUrl = `/api/admin/get-reports-divine?${qs.toString()}`;
       console.log("🔍 Fetching from:", apiUrl);
       console.log("📋 Query params:", Object.fromEntries(qs.entries()));
 
@@ -210,7 +210,7 @@ const ReportOrders: React.FC = () => {
       if (!result.isConfirmed) return;
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-status/${orderId}`,
+        `/api/admin/update-status/${orderId}`,
         {
           method: "PUT",
           headers: getAuthHeaders(),

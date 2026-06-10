@@ -72,7 +72,7 @@ function AddGiftContent() {
   // API to get all gifts
   const getAllGifts = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-gift`);
+      const response = await fetch(`/api/admin/get-all-gift`);
       const data: ApiResponse = await response.json();
       
       if (data.success) {
@@ -227,7 +227,7 @@ function AddGiftContent() {
   // API call functions
   const createGift = async (formData: FormData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-gift`, {
+      const response = await fetch(`/api/admin/add-gift`, {
         method: 'POST',
         body: formData,
       });
@@ -240,7 +240,7 @@ function AddGiftContent() {
 
   const updateGift = async (formData: FormData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-gift`, {
+      const response = await fetch(`/api/admin/update-gift`, {
         method: 'POST',
         body: formData,
       });

@@ -24,7 +24,7 @@ function EditAstrologerContent() {
 
     const fetchAstrologer = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/astrologer_details_by_id`, {
+        const res = await fetch(`/api/admin/astrologer_details_by_id`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

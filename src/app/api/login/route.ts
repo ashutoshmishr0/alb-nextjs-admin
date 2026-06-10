@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Express backend ko call karo
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/adminLogin`, {
+    const response = await fetch(`/api/admin/adminLogin`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

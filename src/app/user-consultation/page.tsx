@@ -63,7 +63,7 @@ const ConsultationPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-main-expertise`);
+        const response = await fetch(`/api/admin/get-all-main-expertise`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch data');

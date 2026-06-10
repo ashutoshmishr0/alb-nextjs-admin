@@ -177,7 +177,7 @@ export default function Customer() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/change-banned-status`,
+        `/api/admin/change-banned-status`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -233,7 +233,7 @@ export default function Customer() {
       type: inputFieldDetail.type
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add_deduct_customer_wallet`, {
+    fetch(`/api/admin/add_deduct_customer_wallet`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -318,7 +318,7 @@ export default function Customer() {
     };
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/change-banned-status`, {
+      const response = await fetch(`/api/admin/change-banned-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

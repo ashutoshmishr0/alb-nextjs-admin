@@ -65,7 +65,7 @@ export default function EditReport() {
   const fetchReportDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reports/${reportId}`);
+      const response = await fetch(`/api/admin/reports/${reportId}`);
       const data = await response.json();
       
       if (data.success && data.report) {
@@ -140,7 +140,7 @@ export default function EditReport() {
     });
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/${reportId}`, {
+      const response = await fetch(`/api/admin/${reportId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

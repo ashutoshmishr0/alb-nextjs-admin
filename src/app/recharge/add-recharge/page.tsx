@@ -53,7 +53,7 @@ function AddRechargeContent() {
       if (editMode && rechargeId) {
         try {
           setFetching(true);
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-recharge-plan/${rechargeId}`);
+          const response = await fetch(`/api/admin/get-recharge-plan/${rechargeId}`);
           const data = await response.json();
           
           if (data.success && data.data) {
@@ -156,7 +156,7 @@ function AddRechargeContent() {
     try {
       console.log("📤 Creating recharge plan with payload:", rechargeData);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/create_recharge_plan`, {
+      const response = await fetch(`/api/admin/create_recharge_plan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,7 +194,7 @@ function AddRechargeContent() {
     try {
       console.log("📤 Updating recharge plan with payload:", rechargeData);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-recharge-plan/${rechargeData.rechargeId}`, {
+      const response = await fetch(`/api/admin/update-recharge-plan/${rechargeData.rechargeId}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json' 

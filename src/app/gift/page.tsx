@@ -31,7 +31,7 @@
 //   const getGiftData = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-gift`);
+//       const response = await fetch(`/api/admin/get-all-gift`);
 //       const data: ApiResponse<Gift[]> = await response.json();
       
 //       if (data.success) {
@@ -61,7 +61,7 @@
 
 //     if (result.isConfirmed) {
 //       try {
-//         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-gift`, {
+//         const response = await fetch(`/api/admin/delete-gift`, {
 //           method: 'POST',
 //           headers: {
 //             'Content-Type': 'application/json',

@@ -28,7 +28,7 @@ const CategoryList = () => {
   const getCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/view-categories`);
+      const response = await fetch(`/api/admin/view-categories`);
       const data: ApiResponse = await response.json();
 
       if (data.success) {
@@ -72,7 +72,7 @@ const CategoryList = () => {
           didOpen: () => { Swal.showLoading(); },
         });
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-categories`, {
+        const response = await fetch(`/api/admin/delete-categories`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ categoryId }),  // sending categoryId as per delete API

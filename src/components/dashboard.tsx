@@ -58,7 +58,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_dashboard`, {
+      const response = await fetch(`/api/admin/get_dashboard`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -84,7 +84,7 @@ const Dashboard = () => {
       const year = rechargeReportDate.getFullYear();
       
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/recharge-per-day-history?month=${month}&year=${year}`,
+        `/api/admin/recharge-per-day-history?month=${month}&year=${year}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -111,7 +111,7 @@ const Dashboard = () => {
       const year = earningChartDate.getFullYear();
       
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_admin_earning?month=${month}&year=${year}`,
+        `/api/admin/get_admin_earning?month=${month}&year=${year}`,
         {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
@@ -132,7 +132,7 @@ const Dashboard = () => {
   // Fetch service used report
   const fetchServiceUsedReport = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_count_service_used`, {
+      const response = await fetch(`/api/admin/get_count_service_used`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });

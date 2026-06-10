@@ -298,7 +298,7 @@ useEffect(() => {
         setSlotDurations(slotsData?.slots || []);
 
         if (isEdit && initialData?._id) {
-          const cpRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-consultation-price`, {
+          const cpRes = await fetch(`/api/admin/get-consultation-price`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ astrologerId: initialData._id }),
@@ -1270,7 +1270,7 @@ const ConsultationPriceSection: React.FC<ConsultationPriceSectionProps> = ({
 
     setAdding(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/consultation-price`, {
+      const res = await fetch(`/api/admin/consultation-price`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ astrologerId, durationId: duration, price: Number(price) }),
@@ -1300,7 +1300,7 @@ const ConsultationPriceSection: React.FC<ConsultationPriceSectionProps> = ({
   const handleDelete = async (durationId: string) => {
     setDeleting(durationId);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-consultation-price`, {
+      const res = await fetch(`/api/admin/delete-consultation-price`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ astrologerId, durationId }),

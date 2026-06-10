@@ -145,7 +145,7 @@
 //   // API call functions
 //   const createRemedies = async (formData: FormData) => {
 //     try {
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-remedy`, {
+//       const response = await fetch(`/api/admin/add-remedy`, {
 //         method: 'POST',
 //         body: formData,
 //       });
@@ -551,7 +551,7 @@ function AddRemediesContent(){
   // API call functions
   const createRemedies = async (formData: FormData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-remedy`, {
+      const response = await fetch(`/api/admin/add-remedy`, {
         method: 'POST',
         body: formData,
       });

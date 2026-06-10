@@ -65,7 +65,7 @@ export default function ProfessionalInfo({ astrologerId, initialData, onUpdate }
   const fetchLanguages = async () => {
     setLoadingLanguages(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_language`);
+      const response = await fetch(`/api/admin/get_language`);
       const data = await response.json();
       
       if (data.success) {
@@ -250,7 +250,7 @@ export default function ProfessionalInfo({ astrologerId, initialData, onUpdate }
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-astrologer`,
+        `/api/admin/update-astrologer`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
