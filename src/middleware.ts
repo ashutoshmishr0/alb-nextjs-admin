@@ -1,7 +1,7 @@
 // middleware.ts - OPTIMIZED VERSION
 import { NextResponse, NextRequest } from 'next/server';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4019';
+const API_URL = process.env.API_URL || 'http://localhost:4019';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

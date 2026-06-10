@@ -135,8 +135,8 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     setSaving(true);
     try {
       const url = isEdit
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans/${planId}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`;
+        ? `/api/admin/plans/${planId}`
+        : `/api/admin/plans`;
 
       const method = isEdit ? 'PUT' : 'POST';
 
