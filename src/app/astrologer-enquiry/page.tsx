@@ -85,7 +85,7 @@ const AstrologerEnquiryClient = () => {
   const fetchAstrologers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${base_url}${get_enquiry_astrologer}`);
+      const response = await fetch(`/${get_enquiry_astrologer}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

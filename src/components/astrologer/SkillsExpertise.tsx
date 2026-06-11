@@ -89,10 +89,10 @@ export default function SkillsExpertise({ astrologerId, initialData, onUpdate }:
     setLoading(true);
     try {
       const [skillsRes, expertiseRes, remediesRes, categoriesRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-skill`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-main-expertise`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/view-remedy`),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/view-categories`)
+        fetch(`/api/admin/get-skill`),
+        fetch(`/api/admin/get-all-main-expertise`),
+        fetch(`/api/admin/view-remedy`),
+        fetch(`/api/admin/view-categories`)
       ]);
 
       const [skillsData, expertiseData, remediesData, categoriesData] = await Promise.all([
@@ -254,7 +254,7 @@ export default function SkillsExpertise({ astrologerId, initialData, onUpdate }:
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-astrologer`,
+        `/api/admin/update-astrologer`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

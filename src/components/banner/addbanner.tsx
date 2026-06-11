@@ -178,8 +178,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
 
     const endpoint = stateData 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-banners`
-      : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-banners`;
+      ? `/api/admin/update-banners`
+      : `/api/admin/add-banners`;
 
     // Show loading alert
     Swal.fire({

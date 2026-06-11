@@ -84,7 +84,7 @@ const VideoCallHistory: React.FC<VideoCallHistoryProps> = ({ astrologerId }) => 
       
       try {
         setIsLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/astrologer_chat_history`, {
+        const response = await fetch(`/api/admin/astrologer_chat_history`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -189,7 +189,7 @@ const SlotBookingSection: React.FC<BookingSectionProps> = ({
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_slots_duration`, { headers });
+        const res = await fetch(`/api/admin/get_slots_duration`, { headers });
         if (!res.ok) return;
         const data = await res.json();
         const durations: SlotDuration[] = data.slots || data || [];

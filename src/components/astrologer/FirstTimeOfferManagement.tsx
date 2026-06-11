@@ -98,7 +98,7 @@ export default function FirstTimeOfferManagement({
     setLoadingSlots(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_slots_duration`
+        `/api/admin/get_slots_duration`
       );
       const data = await response.json();
       if (data.success) {

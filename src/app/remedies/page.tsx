@@ -30,7 +30,7 @@ const Remedies = () => {
   const getRemedies = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/view-remedy`);
+      const response = await fetch(`/api/admin/view-remedy`);
       const data: ApiResponse<Remedies[]> = await response.json();
       
       if (data.success) {
@@ -60,7 +60,7 @@ const Remedies = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-remedy`, {
+        const response = await fetch(`/api/admin/delete-remedy`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

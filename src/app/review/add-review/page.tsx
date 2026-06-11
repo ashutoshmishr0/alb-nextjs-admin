@@ -58,7 +58,7 @@ function AddReviewContent() {
       if (editMode && reviewId) {
         try {
           setFetching(true);
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/reviews?reviewId=${reviewId}`);
+          const response = await fetch(`/api/admin/reviews?reviewId=${reviewId}`);
           const data = await response.json();
 
           if (data.success && data.data) {
@@ -91,7 +91,7 @@ function AddReviewContent() {
     const fetchInitialData = async () => {
       try {
         // Fetch astrologers
-        const astroResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-astrologers`,{credentials: 'include'});
+        const astroResponse = await fetch(`/api/admin/get-all-astrologers`,{credentials: 'include'});
         const astroData = await astroResponse.json();
         if (astroData.success) {
           setAstrologerListData(astroData.astrologers || []);
@@ -172,7 +172,7 @@ function AddReviewContent() {
     try {
       console.log("📤 Creating review with payload:", reviewData);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-review`, {
+      const response = await fetch(`/api/admin/add-review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json', // ✅ Use JSON, not FormData
@@ -206,7 +206,7 @@ function AddReviewContent() {
     try {
       console.log("📤 Updating review with payload:", reviewData);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-review`, {
+      const response = await fetch(`/api/admin/update-review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

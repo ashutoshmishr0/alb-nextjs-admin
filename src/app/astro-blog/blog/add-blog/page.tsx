@@ -101,7 +101,7 @@ const AddEditBlogContent = () => {
   // Fetch Categories
   const fetchCategories = async (): Promise<void> => {
     try {
-      const res = await fetch(`${base_url}api/admin/blog-category-list`);
+      const res = await fetch(`/api/admin/blog-category-list`);
       if (!res.ok) throw new Error('Failed to fetch categories');
       const data = await res.json();
       setCategories(data.categoryBlog || []);
@@ -274,8 +274,8 @@ const AddEditBlogContent = () => {
       setLoading(true);
 
       const url = editBlog
-        ? `${base_url}api/admin/update_astro_blog`
-        : `${base_url}api/admin/add-astro-blog`;
+        ? `/api/admin/update_astro_blog`
+        : `/api/admin/add-astro-blog`;
       const method = 'POST';
 
       const res = await fetch(url, {

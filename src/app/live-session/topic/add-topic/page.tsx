@@ -59,7 +59,7 @@ function AddTopicContent() {
   // API call functions
   const getLiveSessionCategory = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_live_session_category`);
+      const response = await fetch(`/api/admin/get_live_session_category`);
       const data = await response.json();
       if (data.success) {
         setLiveSessionCategoryData(data.categories || []);
@@ -73,7 +73,7 @@ function AddTopicContent() {
   const getLiveSessionTopic = async () => {
     try {
       setFetching(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_live_session_topic`);
+      const response = await fetch(`/api/admin/get_live_session_topic`);
       const data: ApiResponse<Topic> = await response.json();
 
       console.log('All Topics API Response:', data); // Debug log
@@ -122,7 +122,7 @@ function AddTopicContent() {
 
   const createLiveSessionTopic = async (topicData: { categoryId: string; topicName: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/create_live_session_topic`, {
+      const response = await fetch(`/api/admin/create_live_session_topic`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(topicData),
@@ -136,7 +136,7 @@ function AddTopicContent() {
 
   const updateLiveSessionTopic = async (topicData: { topicId: string; categoryId: string; topicName: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update_live_session_topic`, {
+      const response = await fetch(`/api/admin/update_live_session_topic`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(topicData),

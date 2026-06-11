@@ -122,7 +122,7 @@ export default function ViewAstrologer() {
         setIsLoading(true);
         
         // Fetch detailed astrologer data
-        const astroResponse = await fetch(`${base_url}${get_astrologer_by_id}`, {
+        const astroResponse = await fetch(`/${get_astrologer_by_id}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -138,7 +138,7 @@ export default function ViewAstrologer() {
         }
 
         // Fetch duration data
-        const durationResponse = await fetch(`${base_url}${get_astrologer_duration_by_id(astrologerId)}`);
+        const durationResponse = await fetch(`/${get_astrologer_duration_by_id(astrologerId)}`);
         if (durationResponse.ok) {
           const durationData = await durationResponse.json();
           setDurationData(durationData);

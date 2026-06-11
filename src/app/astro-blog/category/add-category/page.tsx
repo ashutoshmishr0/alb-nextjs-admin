@@ -101,7 +101,7 @@ const AddEditCategoryContent: React.FC = () => {
 
       if (editCategory) {
         // UPDATE
-        const res = await fetch(`${base_url}api/admin/update_blog_category`, {
+        const res = await fetch(`/api/admin/update_blog_category`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -124,7 +124,7 @@ const AddEditCategoryContent: React.FC = () => {
         });
       } else {
         // CREATE
-        const res = await fetch(`${base_url}api/admin/add-blog-category`, {
+        const res = await fetch(`/api/admin/add-blog-category`, {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },

@@ -49,7 +49,7 @@ const ReviewHistory: React.FC<ReviewHistoryProps> = ({ customerId }) => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-customer-review`, {
+      const response = await fetch(`/api/admin/get-customer-review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

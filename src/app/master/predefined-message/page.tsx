@@ -46,7 +46,7 @@
 //   const fetchMessages = async () => {
 //     try {
 //       setLoading(true);
-//       const res = await fetch(`${base_url}api/admin/get_predefined_message`, {
+//       const res = await fetch(`/api/admin/get_predefined_message`, {
 //         cache: 'no-store',
 //         headers: {
 //           'Cache-Control': 'no-cache',
@@ -115,7 +115,7 @@
 //         }
 //       });
 
-//       const res = await fetch(`${base_url}api/admin/delete_predefined_message`, {
+//       const res = await fetch(`/api/admin/delete_predefined_message`, {
 //         method: 'POST',
 //         headers: { 'Content-Type': 'application/json' },
 //         body: JSON.stringify({ id }),

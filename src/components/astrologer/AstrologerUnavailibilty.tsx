@@ -140,7 +140,7 @@ export default function ReportsAndAvailability({ astrologerId, initialData, onUp
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-report-astrologer`,
+        `/api/admin/update-report-astrologer`,
         {
           method: 'PUT',
           credentials: 'include',

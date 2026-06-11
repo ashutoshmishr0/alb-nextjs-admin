@@ -57,7 +57,7 @@ export default function PropertyLeadsPage() {
     try {
       setIsLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/property_data`
+        `/api/admin/property_data`
       );
       if (!res.ok) throw new Error("Failed to fetch");
 

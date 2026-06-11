@@ -8,8 +8,8 @@ const TermsAndConditionsPage: React.FC = () => {
   const [type, setType] = useState<string>('Astrologer');
   const [loading, setLoading] = useState<boolean>(false);
 
-  const getEndpoint = `${base_url}api/admin/get-terms-condition`;
-  const createEndpoint = `${base_url}api/admin/add-terms-condition`;
+  const getEndpoint = `/api/admin/get-terms-condition`;
+  const createEndpoint = `/api/admin/add-terms-condition`;
 
   // Fetch data when type changes
   useEffect(() => {

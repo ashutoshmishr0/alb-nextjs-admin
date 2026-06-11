@@ -117,7 +117,7 @@ const SingleAstrologer: React.FC = () => {
       setLoadingReviews(true);
       setReviewsError(null);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-astrologer-review`, {
+      const response = await fetch(`/api/admin/get-astrologer-review`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

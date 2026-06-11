@@ -70,7 +70,7 @@ const AstroblogPage: React.FC = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${base_url}api/admin/get_astro_blogs`, {
+      const res = await fetch(`/api/admin/get_astro_blogs`, {
         credentials: 'include',
       });
       if (!res.ok) throw new Error("Failed to fetch blogs");
@@ -108,7 +108,7 @@ const AstroblogPage: React.FC = () => {
         }
       });
 
-      const res = await fetch(`${base_url}api/admin/delete_astro_blogs`, {
+      const res = await fetch(`/api/admin/delete_astro_blogs`, {
         method: "POST",
         credentials: 'include', 
         headers: { "Content-Type": "application/json" },

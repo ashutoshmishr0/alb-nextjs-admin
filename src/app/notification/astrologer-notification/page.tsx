@@ -25,7 +25,7 @@
 //   const getAstrologerNotifications = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-astrologer-notification`);
+//       const response = await fetch(`/api/admin/get-astrologer-notification`);
 //       const data = await response.json();
       
 //       if (data.success) {
@@ -68,7 +68,7 @@
 
 //     if (result.isConfirmed) {
 //       try {
-//         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-astrologer-notification`, {
+//         const response = await fetch(`/api/admin/delete-astrologer-notification`, {
 //           method: 'DELETE',
 //           headers: {
 //             'Content-Type': 'application/json',

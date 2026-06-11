@@ -53,7 +53,7 @@
 //   const fetchLeaveRequests = async () => {
 //     try {
 //       setLoading(true);
-//       const res = await fetch(`${base_url}api/admin/get_all_leave_requests`); // change path if needed
+//       const res = await fetch(`/api/admin/get_all_leave_requests`); // change path if needed
 //       const data = await res.json();
 //       setLeaveRequests(data.leaves);
 //       setFilteredData(data.leaves);

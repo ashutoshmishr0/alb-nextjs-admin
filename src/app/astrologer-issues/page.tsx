@@ -89,7 +89,7 @@
 //   const fetchAstrologerIssues = async () => {
 //     try {
 //       setIsLoading(true);
-//       const res = await fetch(`${base_url}api/admin/get_all_astrologers_issue`); // ✅ Replace with your actual API route
+//       const res = await fetch(`/api/admin/get_all_astrologers_issue`); // ✅ Replace with your actual API route
 //       if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
 //       const data = await res.json();
 

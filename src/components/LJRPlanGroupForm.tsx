@@ -29,11 +29,10 @@ interface FAQ {
 interface FormState {
   groupId: string;
   title: string;
-  description: string;
+  slug: string;
   sortOrder: number | '';
   isActive: boolean;
   plans: string[];
-  // features: string[];
   testimonials: Testimonial[];
   faqs: FAQ[];
 }
@@ -41,11 +40,10 @@ interface FormState {
 const defaultForm: FormState = {
   groupId: '',
   title: '',
-  description: '',
+  slug: '',
   sortOrder: '',
   isActive: true,
   plans: [],
-  // features: [],
   testimonials: [],
   faqs: [],
 };
@@ -60,7 +58,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Search states
   const [selectedSearch, setSelectedSearch] = useState('');
   const [availableSearch, setAvailableSearch] = useState('');
@@ -68,7 +66,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/plans`, {
+        const res = await fetch(`/api/admin/plans`, {
           credentials: 'include'
         });
         const data = await res.json();
@@ -86,7 +84,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       try {
         setLoading(true);
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`, {
+          `/api/admin/plan-groups/${groupId}`, {
           credentials: 'include'
         }
         );
@@ -96,11 +94,10 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           setForm({
             groupId: g.groupId,
             title: g.title,
-            description: g.description || '',
+            slug: g.slug || '',
             sortOrder: g.sortOrder,
             isActive: g.isActive,
             plans: g.plans.map((p: any) => p.planId ?? p),
-            // features: g.features || [],
             testimonials: g.testimonials || [],
             faqs: g.faqs || [],
           });
@@ -117,13 +114,12 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const selectedPlans = allPlans.filter(p => form.plans.includes(p.planId));
   const availablePlans = allPlans.filter(p => !form.plans.includes(p.planId));
 
-  // Filter plans based on search
-  const filteredSelectedPlans = selectedPlans.filter(p => 
+  const filteredSelectedPlans = selectedPlans.filter(p =>
     p.planId.toLowerCase().includes(selectedSearch.toLowerCase()) ||
     p.title.toLowerCase().includes(selectedSearch.toLowerCase())
   );
 
-  const filteredAvailablePlans = availablePlans.filter(p => 
+  const filteredAvailablePlans = availablePlans.filter(p =>
     p.planId.toLowerCase().includes(availableSearch.toLowerCase()) ||
     p.title.toLowerCase().includes(availableSearch.toLowerCase())
   );
@@ -132,20 +128,18 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     const newErrors: Record<string, string> = {};
     if (!form.groupId.trim()) newErrors.groupId = 'Group ID is required';
     if (!form.title.trim()) newErrors.title = 'Title is required';
-    
-    // Validate testimonials
+
     form.testimonials.forEach((t, i) => {
       if (!t.name.trim()) newErrors[`testimonial_${i}_name`] = 'Name is required';
       if (!t.description.trim()) newErrors[`testimonial_${i}_desc`] = 'Description is required';
       if (!t.stars || t.stars < 1 || t.stars > 5) newErrors[`testimonial_${i}_stars`] = 'Stars must be 1-5';
     });
-    
-    // Validate FAQs
+
     form.faqs.forEach((f, i) => {
       if (!f.question.trim()) newErrors[`faq_${i}_question`] = 'Question is required';
       if (!f.answer.trim()) newErrors[`faq_${i}_answer`] = 'Answer is required';
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -174,19 +168,18 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     setSaving(true);
     try {
       const url = isEdit
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups/${groupId}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/admin/plan-groups`;
+        ? `/api/admin/plan-groups/${groupId}`
+        : `/api/admin/plan-groups`;
 
       const method = isEdit ? 'PUT' : 'POST';
 
       const body = {
         groupId: form.groupId,
         title: form.title,
-        description: form.description || null,
+        slug: form.slug || null,
         sortOrder: Number(form.sortOrder) || 0,
         isActive: form.isActive,
         plans: form.plans,
-        // features: form.features,
         testimonials: form.testimonials,
         faqs: form.faqs.map(faq => ({
           question: faq.question,
@@ -271,10 +264,12 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Basic Info - Same as before */}
+        {/* Basic Info */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <h2 className="font-semibold text-gray-800 mb-4">Group Info</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Group ID */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Group ID <span className="text-red-500">*</span>
@@ -284,18 +279,20 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 value={form.groupId}
                 disabled={isEdit}
                 onChange={(e) => setForm(prev => ({ ...prev, groupId: e.target.value }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${isEdit
-                  ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
-                  : errors.groupId
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                  }`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                  isEdit
+                    ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
+                    : errors.groupId
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                }`}
                 placeholder="e.g. life-journey-bundle"
               />
               {isEdit && <p className="text-xs text-gray-400 mt-1">Group ID cannot be changed</p>}
               {errors.groupId && <p className="text-red-500 text-xs mt-1">{errors.groupId}</p>}
             </div>
 
+            {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Title <span className="text-red-500">*</span>
@@ -304,26 +301,28 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.title ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                  errors.title ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="e.g. Life Journey Reports"
               />
               {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Description
+                Slug
+                <span className="text-gray-400 font-normal ml-1">(optional)</span>
               </label>
               <input
                 type="text"
-                value={form.description}
-                onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+                value={form.slug}
+                onChange={(e) => setForm(prev => ({ ...prev, slug: e.target.value }))}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
-                placeholder="Short description (optional)"
+                placeholder="e.g. life-journey-bundle"
               />
             </div>
-
+            {/* Sort Order + Slug — same row */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Sort Order
@@ -343,62 +342,12 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 min="0"
               />
             </div>
+
+
           </div>
         </div>
 
-        {/* Features Section - Same as before */}
-        {/* <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="font-semibold text-gray-800">Group Features</h2>
-              <p className="text-xs text-gray-500">Key features of this plan group</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setForm(prev => ({ ...prev, features: [...prev.features, ''] }))}
-              className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all flex items-center gap-1"
-            >
-              <Plus className="w-3 h-3" /> Add Feature
-            </button>
-          </div>
-
-          {form.features.length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-4">
-              No features added yet. Click "+ Add Feature" to begin.
-            </p>
-          )}
-
-          <div className="space-y-2">
-            {form.features.map((feature, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 w-5 shrink-0">{i + 1}.</span>
-                <input
-                  type="text"
-                  value={feature}
-                  onChange={(e) => {
-                    const updated = [...form.features];
-                    updated[i] = e.target.value;
-                    setForm(prev => ({ ...prev, features: updated }));
-                  }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
-                  placeholder={`Feature ${i + 1}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setForm(prev => ({
-                    ...prev,
-                    features: prev.features.filter((_, idx) => idx !== i)
-                  }))}
-                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div> */}
-
-        {/* Testimonials Section - UPDATED to match backend */}
+        {/* Testimonials Section */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -407,9 +356,9 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             </div>
             <button
               type="button"
-              onClick={() => setForm(prev => ({ 
-                ...prev, 
-                testimonials: [...prev.testimonials, { name: '', description: '', stars: 5, position: '' }] 
+              onClick={() => setForm(prev => ({
+                ...prev,
+                testimonials: [...prev.testimonials, { name: '', description: '', stars: 5, position: '' }]
               }))}
               className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all flex items-center gap-1"
             >
@@ -461,7 +410,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       <p className="text-red-500 text-xs mt-1">{errors[`testimonial_${i}_name`]}</p>
                     )}
                   </div>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       Rating <span className="text-red-500">*</span>
@@ -472,7 +421,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       setForm(prev => ({ ...prev, testimonials: updated }));
                     })}
                   </div>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       Testimonial Text <span className="text-red-500">*</span>
@@ -494,7 +443,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       <p className="text-red-500 text-xs mt-1">{errors[`testimonial_${i}_desc`]}</p>
                     )}
                   </div>
-                  
+
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       Position/Title (optional)
@@ -517,7 +466,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           </div>
         </div>
 
-        {/* FAQs Section - UPDATED to match backend */}
+        {/* FAQs Section */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -526,9 +475,9 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             </div>
             <button
               type="button"
-              onClick={() => setForm(prev => ({ 
-                ...prev, 
-                faqs: [...prev.faqs, { question: '', answer: '', sortOrder: prev.faqs.length }] 
+              onClick={() => setForm(prev => ({
+                ...prev,
+                faqs: [...prev.faqs, { question: '', answer: '', sortOrder: prev.faqs.length }]
               }))}
               className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all flex items-center gap-1"
             >
@@ -607,7 +556,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           </div>
         </div>
 
-        {/* Plan Picker - Same as before */}
+        {/* Plan Picker */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
           <h2 className="font-semibold text-gray-800 mb-1">Assign Plans</h2>
           <p className="text-xs text-gray-500 mb-4">
@@ -717,6 +666,7 @@ const LJRPlanGroupForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             {saving ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Saving...</> : <><Save className="w-4 h-4" /> {isEdit ? 'Update Group' : 'Create Group'}</>}
           </button>
         </div>
+
       </form>
     </div>
   );

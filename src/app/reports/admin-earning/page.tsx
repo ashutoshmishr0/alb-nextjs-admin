@@ -256,7 +256,7 @@ const AdminEarning: React.FC = () => {
       if (filters.endDate) params.set('endDate', filters.endDate);
       if (filters.type !== 'all') params.set('type', filters.type);
 
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_admin_earnig_history2?${params.toString()}`;
+      const url = `/api/admin/get_admin_earnig_history2?${params.toString()}`;
       const response = await fetch(url);
 
       if (!response.ok) {

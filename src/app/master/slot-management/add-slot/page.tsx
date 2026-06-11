@@ -59,7 +59,7 @@ const AddSlot = () => {
         }
       });
 
-      const res = await fetch(`${base_url}api/admin/create_slots_duration`, {
+      const res = await fetch(`/api/admin/create_slots_duration`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slotDuration: slot_duration }),

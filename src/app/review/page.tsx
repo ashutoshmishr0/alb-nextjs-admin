@@ -32,7 +32,7 @@ const Review = () => {
   const getAstrologersReviews = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-review`);
+      const response = await fetch(`/api/admin/get-all-review`);
       const data: ApiResponse<Review[]> = await response.json();
       if (data.success) {
         setAstrologersReviews(data.reviews || []);
@@ -61,7 +61,7 @@ const Review = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-review`, {
+        const response = await fetch(`/api/admin/delete-review`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reviewId }),
@@ -84,7 +84,7 @@ const Review = () => {
     try {
       const newStatus = !currentStatus;
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-review`, {
+      const response = await fetch(`/api/admin/update-review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

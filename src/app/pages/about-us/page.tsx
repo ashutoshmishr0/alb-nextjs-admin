@@ -7,8 +7,8 @@ const AboutUsPage: React.FC = () => {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  const getEndpoint = `${base_url}api/admin/get-about-us`;
-  const createEndpoint = `${base_url}api/admin/add-about-us`;
+  const getEndpoint = `/api/admin/get-about-us`;
+  const createEndpoint = `/api/admin/add-about-us`;
 
   // Fetch data on mount
   useEffect(() => {

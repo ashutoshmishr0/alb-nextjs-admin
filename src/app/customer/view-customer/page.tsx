@@ -68,7 +68,7 @@ const fetchCustomerById = async (customerId: string): Promise<{ success: boolean
   try {
     console.log('🔍 Fetching customer with ID:', customerId);
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/customer_details_by_id`, {
+    const response = await fetch(`/api/admin/customer_details_by_id`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -11,11 +11,7 @@ export const img_url = process.env.NEXT_PUBLIC_IMAGE_URL
     : `${process.env.NEXT_PUBLIC_IMAGE_URL}/`)
   : "https://api.acharyalavbhushan.com/";
 
-export const api_url = process.env.NEXT_PUBLIC_API_URL
-  ? (process.env.NEXT_PUBLIC_API_URL.endsWith('/')
-    ? `${process.env.NEXT_PUBLIC_API_URL}api/`
-    : `${process.env.NEXT_PUBLIC_API_URL}/api/`)
-  : "http://localhost:3003/api/";
+export const api_url = ""
 
 
 //! Dashboard

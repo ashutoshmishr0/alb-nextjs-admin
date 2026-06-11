@@ -253,7 +253,7 @@ const ReportOrders: React.FC = () => {
       if (toDate) statsQs.set('to', toDate);
       
       const statsResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/date?${statsQs.toString()}`,
+        `/api/admin/life-journey-orders/date?${statsQs.toString()}`,
         { headers: getAuthHeaders() ,           credentials: "include" }
       );
       
@@ -291,7 +291,7 @@ const fetchFilteredStats = async (currentFilters: Filters) => {
     if (currentFilters.expressDelivery === "") statsQs.delete("expressDelivery");
 
     const statsResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/stats?${statsQs.toString()}`,
+      `/api/admin/life-journey-orders/stats?${statsQs.toString()}`,
       { headers: getAuthHeaders(), credentials: "include"}
     );
     
@@ -343,7 +343,7 @@ const debouncedFetch = useMemo(() =>
 
       // Fetch orders
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders?${qs.toString()}`,
+        `/api/admin/life-journey-orders?${qs.toString()}`,
         { headers: getAuthHeaders()          ,credentials: "include", }
       );
 
@@ -609,7 +609,7 @@ const debouncedFetch = useMemo(() =>
     try {
       const idOrOrder = activeRow?._id || activeRow?.orderID;
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/${idOrOrder}`,
+        `/api/admin/life-journey-orders/${idOrOrder}`,
         {
           method: "PATCH",
           headers: getAuthHeaders(),
@@ -728,7 +728,7 @@ const debouncedFetch = useMemo(() =>
       });
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/export?${qs.toString()}`,
+        `/api/admin/life-journey-orders/export?${qs.toString()}`,
         { method: "POST",credentials: "include", headers: { Authorization: "Bearer " + token } }
       );
       const blob = await res.blob();

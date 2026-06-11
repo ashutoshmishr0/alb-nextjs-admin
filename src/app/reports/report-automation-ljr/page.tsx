@@ -73,7 +73,7 @@ const ReportOrders: React.FC = () => {
         if (value) qs.set(key, value);
       });
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/ljr-reports?${qs.toString()}`;
+      const apiUrl = `/api/admin/ljr-reports?${qs.toString()}`;
       const response = await fetch(apiUrl, { headers: getAuthHeaders() });
 
       if (!response.ok) {

@@ -139,7 +139,7 @@ const Regex_Accept_Alpha = /^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/
   // API call functions
   const createSkill = async (skillData: { skill: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/skill`, {
+      const response = await fetch(`/api/admin/skill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(skillData),
@@ -153,7 +153,7 @@ const Regex_Accept_Alpha = /^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/
 
   const updateSkill = async (skillData: { skillId: string; skill: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-skill`, {
+      const response = await fetch(`/api/admin/update-skill`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(skillData),

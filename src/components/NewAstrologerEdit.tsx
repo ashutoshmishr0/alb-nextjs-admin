@@ -42,7 +42,7 @@ export default function EditAstrologer() {
   const fetchAstrologer = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${base_url}${get_astrologer_by_id}`, {
+      const response = await fetch(`/${get_astrologer_by_id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ astrologerId })

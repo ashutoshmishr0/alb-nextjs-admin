@@ -35,7 +35,7 @@
 //   const getLiveSessionTopic = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_live_session_topic`);
+//       const response = await fetch(`/api/admin/get_live_session_topic`);
 //       const data: ApiResponse<LiveSessionTopic[]> = await response.json();
       
 //       if (data.success) {
@@ -66,7 +66,7 @@
 
 //     if (result.isConfirmed) {
 //       try {
-//         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete_live_session_topic`, {
+//         const response = await fetch(`/api/admin/delete_live_session_topic`, {
 //           method: 'POST',
 //           headers: {
 //             'Content-Type': 'application/json',

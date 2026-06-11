@@ -32,7 +32,7 @@
 //   const getRechargePlan = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-recharge-plans`);
+//       const response = await fetch(`/api/admin/get-all-recharge-plans`);
 //       const data: ApiResponse<RechargePlan[]> = await response.json();
       
 //       if (data.success) {
@@ -64,7 +64,7 @@
 
 //     if (result.isConfirmed) {
 //       try {
-//         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-recharge-plan`, {
+//         const response = await fetch(`/api/admin/delete-recharge-plan`, {
 //           method: 'POST',
 //           headers: {
 //             'Content-Type': 'application/json',
@@ -101,7 +101,7 @@
 
 //   const updateRechargePlanStatus = async (rechargePlanId: string, status: string) => {
 //     try {
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-recharge-plan-status`, {
+//       const response = await fetch(`/api/admin/update-recharge-plan-status`, {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',

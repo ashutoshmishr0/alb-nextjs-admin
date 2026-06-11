@@ -28,7 +28,7 @@
 //   const getCustomerNotification = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-customer-notification`);
+//       const response = await fetch(`/api/admin/get-customer-notification`);
 //       const data: ApiResponse<Notification[]> = await response.json();
       
 //       if (data.success) {
@@ -58,7 +58,7 @@
 
 //     if (result.isConfirmed) {
 //       try {
-//         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-customer-notification`, {
+//         const response = await fetch(`/api/admin/delete-customer-notification`, {
 //           method: 'DELETE',
 //           headers: {
 //             'Content-Type': 'application/json',

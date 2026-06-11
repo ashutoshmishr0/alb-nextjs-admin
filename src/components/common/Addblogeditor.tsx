@@ -175,7 +175,7 @@ const StaticPageEditor: React.FC<StaticPageEditorProps> = ({
     formData.append('image', file);
 
     try {
-      const res = await fetch(`${base_url}api/admin/upload-blog-image`, {
+      const res = await fetch(`/api/admin/upload-blog-image`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -279,7 +279,7 @@ const StaticPageEditor: React.FC<StaticPageEditorProps> = ({
           formData.append('image', file);
 
           try {
-            const res = await fetch(`${base_url}api/admin/upload-blog-image`, {
+            const res = await fetch(`/api/admin/upload-blog-image`, {
               method: 'POST',
               credentials: 'include',
               body: formData,

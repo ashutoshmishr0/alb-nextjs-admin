@@ -190,7 +190,7 @@ export default function PersonalInfo({ astrologerId, initialData, onUpdate }: Pe
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-astrologer`,
+        `/api/admin/update-astrologer`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

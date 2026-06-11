@@ -86,7 +86,7 @@ const CallHistory: React.FC<CallHistoryProps> = ({ astrologerId }) => {
       
       try {
         setIsLoading(true);
-        const response = await fetch(`${base_url}${get_call_history_by_astrologer_id}`, {
+        const response = await fetch(`/${get_call_history_by_astrologer_id}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

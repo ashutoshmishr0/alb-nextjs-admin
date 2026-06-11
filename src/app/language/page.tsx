@@ -56,7 +56,7 @@ const Language = () => {
         setLoading(true);
         setError("");
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_language`, {
+            const response = await fetch(`/api/admin/get_language`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ const Language = () => {
                     }
                 });
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete_language`, {
+                const response = await fetch(`/api/admin/delete_language`, {
                     method: 'POST',
                     credentials: 'include',
                     headers: {

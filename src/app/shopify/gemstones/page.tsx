@@ -103,7 +103,7 @@ const ShopifyOrdersPage: React.FC = () => {
 
       console.log("Fetching with search:", searchTrigger); // Debug log
 
-      const res = await fetch(`${base_url}api/admin/shopify-orders?${params.toString()}`);
+      const res = await fetch(`/api/admin/shopify-orders?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch");
       
       const response: PaginatedResponse = await res.json();
@@ -185,7 +185,7 @@ const ShopifyOrdersPage: React.FC = () => {
         }));
       }, 1500);
 
-      const res = await fetch(`${base_url}api/admin/shopify-orders/upload-mp4`, {
+      const res = await fetch(`/api/admin/shopify-orders/upload-mp4`, {
         method: "POST",
         body: formData,
       });

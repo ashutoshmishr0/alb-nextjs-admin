@@ -99,7 +99,7 @@ function AddCategoryReview() {
   // Create Category — field name "categories" as per API
   const createCategory = async (categoryData: { categories: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/add-categories`, {
+      const response = await fetch(`/api/admin/add-categories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categoryData),
@@ -114,7 +114,7 @@ function AddCategoryReview() {
   // Update Category — adjust endpoint/body as per your update API
   const updateCategory = async (categoryData: { categoryId: string; categories: string }) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-categories`, {
+      const response = await fetch(`/api/admin/update-categories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(categoryData),

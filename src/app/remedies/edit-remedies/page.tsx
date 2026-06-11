@@ -117,7 +117,7 @@ const EditRemedies: React.FC = () => {
 
   const updateRemedies = async (formData: FormData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-remedy`, {
+      const response = await fetch(`/api/admin/update-remedy`, {
         method: 'POST',
         body: formData,
       });

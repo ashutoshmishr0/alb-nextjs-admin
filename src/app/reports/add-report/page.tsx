@@ -61,7 +61,7 @@ export default function AddEditReport() {
   const fetchReport = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/${reportId}`);
+      const response = await fetch(`/api/admin/${reportId}`);
       const data = await response.json();
       
       if (data.success && data.report) {
@@ -129,8 +129,8 @@ export default function AddEditReport() {
 
     try {
       const url = isEditing 
-        ? `${process.env.NEXT_PUBLIC_API_URL}/api/admin/${reportId}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/admin`;
+        ? `/api/admin/${reportId}`
+        : `/api/admin`;
       
       const method = isEditing ? 'PUT' : 'POST';
       

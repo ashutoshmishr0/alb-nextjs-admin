@@ -29,7 +29,7 @@
 //   const getLiveSessionCategory = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_live_session_category`);
+//       const response = await fetch(`/api/admin/get_live_session_category`);
 //       const data: ApiResponse<LiveSessionCategory[]> = await response.json();
       
 //       if (data.success) {
@@ -60,7 +60,7 @@
 
 //     if (result.isConfirmed) {
 //       try {
-//         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete_live_session_category`, {
+//         const response = await fetch(`/api/admin/delete_live_session_category`, {
 //           method: 'POST',
 //           headers: {
 //             'Content-Type': 'application/json',

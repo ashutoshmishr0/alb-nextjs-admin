@@ -66,7 +66,7 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
   const fetchSlotDurations = async () => {
     setLoadingSlots(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_slots_duration`);
+      const response = await fetch(`/api/admin/get_slots_duration`);
       const data = await response.json();
       if (data.success) {
         const slots = data.slots || [];
@@ -168,7 +168,7 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/consultation-price`,
+        `/api/admin/consultation-price`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -202,7 +202,7 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
       const isDeletingMinPrice = isMinPrice(durationId, existingPrices);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-consultation-price`,
+        `/api/admin/delete-consultation-price`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -302,7 +302,7 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-astrologer`,
+        `/api/admin/update-astrologer`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -445,7 +445,7 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-astrologer`,
+        `/api/admin/update-astrologer`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

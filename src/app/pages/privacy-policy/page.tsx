@@ -7,8 +7,8 @@ const PrivacyPolicyPage: React.FC = () => {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  const getEndpoint = `${base_url}api/admin/get-privacy-policy`;
-  const createEndpoint = `${base_url}api/admin/add-privacy-policy`;
+  const getEndpoint = `/api/admin/get-privacy-policy`;
+  const createEndpoint = `/api/admin/add-privacy-policy`;
 
   // Fetch data on mount
   useEffect(() => {

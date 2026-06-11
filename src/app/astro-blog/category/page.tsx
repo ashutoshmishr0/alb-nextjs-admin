@@ -49,7 +49,7 @@ const CategoryPage: React.FC = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${base_url}api/admin/blog-category-list`);
+      const res = await fetch(`/api/admin/blog-category-list`);
       if (!res.ok) throw new Error('Failed to fetch categories');
       const data = await res.json();
       setCategories(data.categoryBlog || []);
@@ -87,7 +87,7 @@ const CategoryPage: React.FC = () => {
         }
       });
 
-      const res = await fetch(`${base_url}api/admin/delete_blog_category`, {
+      const res = await fetch(`/api/admin/delete_blog_category`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

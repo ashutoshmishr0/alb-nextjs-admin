@@ -46,7 +46,7 @@ export default function ReportAstrologerForm() {
   const fetchAstrologerData = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/astrologer_details_by_id`,
+        `/api/admin/astrologer_details_by_id`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -110,7 +110,7 @@ export default function ReportAstrologerForm() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-report-astrologer`,
+        `/api/admin/update-report-astrologer`,
         {
           method: 'PUT',
           credentials: 'include',

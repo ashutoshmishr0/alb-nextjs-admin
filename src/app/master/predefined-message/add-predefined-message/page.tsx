@@ -76,7 +76,7 @@ function AddPredefinedMessageForm() {
 
     const { message, type, mode, id } = inputFieldDetail;
 
-    const url = `${base_url}api/admin/${
+    const url = `/api/admin/${
       mode === 'Add' ? 'create_predefined_message' : 'update_predefined_message'
     }`;
 

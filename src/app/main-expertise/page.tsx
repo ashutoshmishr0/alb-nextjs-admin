@@ -84,7 +84,7 @@ const MainExpertise = () => {
   const getMainExpertise = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-main-expertise`, {
+      const response = await fetch(`/api/admin/get-all-main-expertise`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ const MainExpertise = () => {
 
   if (result.isConfirmed) {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/delete-main-expertise`, {
+      const response = await fetch(`/api/admin/delete-main-expertise`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -63,7 +63,7 @@ const VideoCallHistory: React.FC<VideoCallHistoryProps> = ({ customerId }) => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/customer_chat_history`, {
+      const response = await fetch(`/api/admin/customer_chat_history`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

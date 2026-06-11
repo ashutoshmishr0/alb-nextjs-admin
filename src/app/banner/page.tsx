@@ -28,7 +28,7 @@
 //     try {
 //       setLoading(true);
 //       const response = await fetch(
-//         `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-app-banners`,
+//         `/api/admin/get-app-banners`,
 //         {
 //           cache: "no-store",
 //           headers: {
@@ -88,7 +88,7 @@
 //         }
 //       });
 
-//       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update_banner_status`;
+//       const apiUrl = `/api/admin/update_banner_status`;
 //       console.log("Calling API:", apiUrl);
 //       console.log("Banner ID:", banner._id);
 

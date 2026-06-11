@@ -58,7 +58,7 @@ const AddPlatformCharge = () => {
         }
       });
 
-      const res = await fetch(`${base_url}api/admin/create-platform-charges`, {
+      const res = await fetch(`/api/admin/create-platform-charges`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platformChargeAmount: platform_charges }),

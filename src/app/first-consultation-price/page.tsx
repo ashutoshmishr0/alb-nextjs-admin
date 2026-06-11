@@ -65,7 +65,7 @@ export default function GlobalOfferPricePage() {
     try {
       setAstroLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-astrologers`,{credentials: 'include'}
+        `/api/admin/get-all-astrologers`,{credentials: 'include'}
       );
       if (!res.ok) throw new Error("Failed to fetch astrologers");
 
