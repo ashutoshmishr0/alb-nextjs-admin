@@ -237,7 +237,7 @@ export default function GlobalOfferPricePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className=" mx-auto px-6 py-6">
         {/* Header Section */}
         <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
@@ -264,7 +264,7 @@ export default function GlobalOfferPricePage() {
         <div className="space-y-4">
 
           <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="max-h-[480px] overflow-auto">
+            <div className=" overflow-auto">
               <table className="min-w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
