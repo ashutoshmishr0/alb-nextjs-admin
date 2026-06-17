@@ -106,10 +106,13 @@ function ListView({
     try {
       const res = await BannerAPI.list({
         screenType: "MOBILE",
-        pageRoute: PAGE_PREFIX,
         limit: 50,
       });
-      setBanners(res.data);
+
+      const data = res.data;
+      console.log("FDSAFA SDFS S ",data);
+      const filteredData = data.filter((item)=> item.page.startsWith('/askbandhu'))
+      setBanners(filteredData);
     } catch (e: any) {
       addToast("error", e.message || "Failed to load banners");
     } finally {
