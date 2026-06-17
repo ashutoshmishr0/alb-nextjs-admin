@@ -16,11 +16,10 @@ import {
 } from "lucide-react";
 import { BannerAPI, type Banner, type BannerStatus } from "@/lib/api/banners";
 import { CropCanvas, type CropRegion } from "./CropCanvas";
-import { BuilderView } from "@/components/bannerNew/BuilderView";
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const BANNER_W = 390;
-const BANNER_H = 180;
+const BANNER_W = 1280;
+const BANNER_H = 720;
 const PAGE_PREFIX = "/askbandhu";
 
 const REDIRECT_OPTIONS = [
@@ -146,7 +145,7 @@ function ListView({
           </div>
           <div>
             <h1 className="text-base font-bold text-slate-900">AskBandhu Banners</h1>
-            <p className="text-[11px] text-slate-400">{PAGE_PREFIX} · 390 × 180 px</p>
+            <p className="text-[11px] text-slate-400">{PAGE_PREFIX} · 1280 × 720 px</p>
           </div>
         </div>
         <button
@@ -239,13 +238,6 @@ function ListView({
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => onEdit(banner)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
-                    title="Edit in builder"
-                  >
-                    <Pencil size={13} />
-                  </button>
                   <button
                     onClick={() => handleDelete(banner._id)}
                     disabled={deletingId === banner._id}
@@ -453,7 +445,7 @@ function AddView({
           </div>
           <div>
             <h1 className="text-base font-bold text-slate-900">Add Banner</h1>
-            <p className="text-[11px] text-slate-400">390 × 180 px · mobile</p>
+            <p className="text-[11px] text-slate-400">1280 × 720 px · mobile</p>
           </div>
         </div>
       </div>
@@ -512,7 +504,7 @@ function AddView({
           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
             Banner image *{" "}
             <span className="text-slate-300 font-normal normal-case">
-              · recommended 390 × 180 px
+              · recommended 1280 × 720 px
             </span>
           </label>
 
@@ -543,7 +535,7 @@ function AddView({
                 </button>
               </div>
               <div className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-mono px-2 py-0.5 rounded-lg">
-                390 × 180
+                1280 × 720
               </div>
             </div>
           ) : (
@@ -573,7 +565,7 @@ function AddView({
                 <p className="text-xs text-slate-400 mt-0.5">PNG, JPG, WebP · max 5 MB</p>
               </div>
               <p className="text-[10px] text-violet-500 font-medium bg-violet-50 px-3 py-1 rounded-full">
-                You'll crop it to 390 × 180 px after selecting
+                You'll crop it to 1280 × 720 px after selecting
               </p>
             </div>
           )}
@@ -619,7 +611,7 @@ export default function AskBandhuBanners() {
 
   const handleEdit = (banner: Banner) => {
     setEditingBanner(banner);
-    setView("x");
+    setView("edit");
   };
 
   const handleBack = () => {
@@ -627,16 +619,6 @@ export default function AskBandhuBanners() {
     setView("list");
   };
 
-  // BuilderView takes full page — no wrapper needed
-  if (view === "edit" && editingBanner) {
-    return (
-      <BuilderView
-        initialBanner={editingBanner}
-        onBack={handleBack}
-        addToast={addToast}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#F7F8FC]">
