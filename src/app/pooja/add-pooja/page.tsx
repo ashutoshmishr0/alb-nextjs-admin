@@ -7,7 +7,10 @@ import {
   Home, BookOpen, Images, Star, Target, Users,
   BanknoteIcon, MessageSquare, Shield, Save, X,
   Upload, Plus, Trash2, CheckCircle, Loader2,
-  ArrowLeft, Eye, AlertCircle
+  ArrowLeft, Eye, AlertCircle,
+  Box,
+  Clock,
+  Info
 } from 'lucide-react';
 
 // Zod validation import
@@ -23,11 +26,30 @@ import PackagesTab from "@/components/puja/PackagesTab";
 import TestimonialsTab from "@/components/puja/TestimonialsTab";
 import FAQsTab from "@/components/puja/FAQsTab";
 import VedicProcedureTab from "@/components/puja/VedicProcedureTab";
+// 🆕 New Tab Imports
+import WhyPerformReasonsTab from "@/components/puja/WhyPerformReasonsTab";
+import AashirwadBoxTab from "@/components/puja/AashirwadBoxTab";
+import RitualProcessTab from "@/components/puja/RitualProcessTab";
+import AboutTab from "@/components/puja/AboutTab";
+
 
 // Types
 interface Category {
   _id: string;
   categoryName: string;
+}
+
+interface PricingPackage {
+  id: number;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  discount?: string;
+  isPopular: boolean;
+  badge?: string; // 🆕 Add this
+  features: string[];
+  duration?: string;
+  validity?: string;
 }
 
 interface InputFieldDetail {
@@ -154,6 +176,7 @@ const AddPujaContent = () => {
     title: '',
     description: ''
   });
+  
   // Main form state
   const [inputFieldDetail, setInputFieldDetail] = useState<InputFieldDetail>({
     categoryId: '',
@@ -188,6 +211,7 @@ const AddPujaContent = () => {
       icon: 'Star'
     }
   ]);
+  
   const [whyYouShould, setWhyYouShould] = useState([
     {
       _id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -215,17 +239,52 @@ const AddPujaContent = () => {
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
 
-  // Tabs
+  // 🆕 NEW STATE VARIABLES
+  const [whyPerformReasons, setWhyPerformReasons] = useState([
+    {
+      _id: `reason_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: '',
+      description: '',
+      icon: 'Shield'
+    }
+  ]);
+
+  const [aashirwadBox, setAashirwadBox] = useState<string[]>(['']);
+
+  const [ritualProcess, setRitualProcess] = useState([
+    {
+      _id: `step_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: '',
+      description: '',
+      icon: '',
+      stepNumber: 1
+    }
+  ]);
+
+  const [about, setAbout] = useState([
+    {
+      _id: `about_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      title: '',
+      content: '',
+      image: ''
+    }
+  ]);
+
+  // ✅ Tabs - Correct IDs
   const tabs = [
     { id: 0, label: 'Basic Info', icon: <Home className="w-4 h-4" /> },
     { id: 1, label: 'Details', icon: <BookOpen className="w-4 h-4" /> },
     { id: 2, label: 'Benefits', icon: <Star className="w-4 h-4" /> },
     { id: 3, label: 'Vedic Procedure', icon: <BookOpen className="w-4 h-4" /> },
     { id: 4, label: 'Who Should Book', icon: <Users className="w-4 h-4" /> },
-    { id: 5, label: 'Why Should You Perform', icon: <Target className="w-4 h-4" /> },
-    { id: 6, label: 'Packages', icon: <BanknoteIcon className="w-4 h-4" /> },
-    { id: 7, label: 'Testimonials', icon: <MessageSquare className="w-4 h-4" /> },
-    { id: 8, label: 'FAQs', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 5, label: 'Why You Should', icon: <Target className="w-4 h-4" /> },
+    { id: 6, label: 'Why Perform Reasons', icon: <Shield className="w-4 h-4" /> },
+    { id: 7, label: 'Aashirwad Box', icon: <Box className="w-4 h-4" /> },
+    { id: 8, label: 'Ritual Process', icon: <Clock className="w-4 h-4" /> },
+    { id: 9, label: 'Packages', icon: <BanknoteIcon className="w-4 h-4" /> },
+    { id: 10, label: 'Testimonials', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 11, label: 'FAQs', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 12, label: 'About', icon: <Info className="w-4 h-4" /> },
   ];
 
   // Validation function for current tab
@@ -247,9 +306,7 @@ const AddPujaContent = () => {
         };
         break;
 
-      // In validateTab function, update case 2:
       case 2: // Benefits
-        // Check if any benefit has a title
         const hasValidBenefit = benefits.some(b => b.title?.trim());
         if (!hasValidBenefit) {
           setValidationErrors([{
@@ -262,7 +319,6 @@ const AddPujaContent = () => {
           return { success: false, errors: [{ path: 'benefits', message: 'At least one benefit with a title is required.' }] };
         }
 
-        // Check individual benefit titles
         const benefitErrors: any[] = [];
         benefits.forEach((b, index) => {
           if (!b.title?.trim()) {
@@ -311,6 +367,7 @@ const AddPujaContent = () => {
         setValidationErrors([]);
         setFieldErrors({});
         return { success: true, errors: null };
+
       case 4: // Who Should Book
         dataToValidate = { whoShouldBook };
         break;
@@ -319,16 +376,32 @@ const AddPujaContent = () => {
         dataToValidate = { whyYouShould };
         break;
 
-      case 6: // Packages
+      case 6: // Why Perform Reasons
+        dataToValidate = { whyPerformReasons };
+        break;
+
+      case 7: // Aashirwad Box
+        dataToValidate = { aashirwadBox };
+        break;
+
+      case 8: // Ritual Process
+        dataToValidate = { ritualProcess };
+        break;
+
+      case 9: // Packages
         dataToValidate = { pricingPackages };
         break;
 
-      case 7: // Testimonials (optional)
+      case 10: // Testimonials
         dataToValidate = { testimonials };
         break;
 
-      case 8: // FAQs (optional)
+      case 11: // FAQs
         dataToValidate = { faqs };
+        break;
+
+      case 12: // About
+        dataToValidate = { about };
         break;
 
       default:
@@ -339,11 +412,8 @@ const AddPujaContent = () => {
 
     if (!result.success && result.errors) {
       setValidationErrors(result.errors);
-
-      // Create field errors map
       const errors: Record<string, string> = {};
       result.errors.forEach((err: any) => {
-        // err.path is already a string from validateTab function
         errors[err.path] = err.message;
       });
       setFieldErrors(errors);
@@ -357,25 +427,15 @@ const AddPujaContent = () => {
 
   // Handle next tab
   const handleNextTab = () => {
-    setHasAttemptedNext(true); // Mark that user tried to go next
-
+    setHasAttemptedNext(true);
     const validation = validateCurrentTab();
-
 
     if (validation.success) {
       setActiveTab(prev => Math.min(tabs.length - 1, prev + 1));
-      setHasAttemptedNext(false); // Reset for next tab
-      setFieldErrors({}); // Clear errors when moving to next tab
+      setHasAttemptedNext(false);
+      setFieldErrors({});
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      console.log('Field errors should be:', fieldErrors);
     }
-  };
-
-  // Check if current tab is valid
-  const isCurrentTabValid = () => {
-    const validation = validateTab(activeTab, getCurrentTabData());
-    return validation.success;
   };
 
   const getCurrentTabData = () => {
@@ -396,7 +456,7 @@ const AddPujaContent = () => {
         return {
           benefits: benefits.map(b => b.title?.trim()).filter(title => title !== '')
         };
-      case 3: // Vedic Procedure
+      case 3:
         return {
           vedicProcedureTitle: vedicProcedure.title,
           vedicProcedureDescription: vedicProcedure.description
@@ -406,18 +466,23 @@ const AddPujaContent = () => {
       case 5:
         return { whyYouShould };
       case 6:
-        return { pricingPackages };
+        return { whyPerformReasons };
       case 7:
-        return { testimonials };
+        return { aashirwadBox };
       case 8:
+        return { ritualProcess };
+      case 9:
+        return { pricingPackages };
+      case 10:
+        return { testimonials };
+      case 11:
         return { faqs };
+      case 12:
+        return { about };
       default:
         return {};
     }
-  };
-
-  // Fetch data on mount
-  useEffect(() => {
+  };useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
 
@@ -445,6 +510,58 @@ const AddPujaContent = () => {
             discountedPrice: pujaData.discountedPrice?.toString() || '',
             subTitle: pujaData.subTitle || ''
           });
+
+          // 🆕 Fetch new data
+          if (pujaData.whyPerformReasons) {
+            setWhyPerformReasons(pujaData.whyPerformReasons);
+          }
+
+          if (pujaData.aashirwadBox) {
+            setAashirwadBox(pujaData.aashirwadBox);
+          }
+
+          if (pujaData.ritualProcess) {
+            setRitualProcess(pujaData.ritualProcess.map((step: any, index: number) => ({
+              _id: step._id || `step_${Date.now()}_${index}`,
+              title: step.title || '',
+              description: step.description || '',
+              icon: step.icon || '',
+              stepNumber: step.stepNumber || index + 1
+            })));
+          }
+
+          if (pujaData.about) {
+            setAbout(pujaData.about);
+          }
+
+          if (pujaData.vedicProcedure) {
+            setVedicProcedure({
+              title: pujaData.vedicProcedure.title || '',
+              description: pujaData.vedicProcedure.description || ''
+            });
+          }
+          // Add in the fetch data section
+if (pujaData.whyPerformReasons) {
+  setWhyPerformReasons(pujaData.whyPerformReasons);
+}
+
+if (pujaData.aashirwadBox) {
+  setAashirwadBox(pujaData.aashirwadBox);
+}
+
+if (pujaData.ritualProcess) {
+  setRitualProcess(pujaData.ritualProcess.map((step: any, index: number) => ({
+    _id: step._id || `step_${Date.now()}_${index}`,
+    title: step.title || '',
+    description: step.description || '',
+    icon: step.icon || '',
+    stepNumber: step.stepNumber || index + 1
+  })));
+}
+
+if (pujaData.about) {
+  setAbout(pujaData.about);
+}
           if (pujaData.vedicProcedure) {
             setVedicProcedure({
               title: pujaData.vedicProcedure.title || '',
@@ -827,6 +944,36 @@ const AddPujaContent = () => {
       formData.append("testimonials", JSON.stringify(testimonials));
       formData.append("faqs", JSON.stringify(faqs));
 
+      // Add to handleSubmit
+formData.append("whyPerformReasons", JSON.stringify(
+  whyPerformReasons.map(item => ({
+    title: item.title,
+    description: item.description,
+    icon: item.icon,
+  }))
+));
+
+formData.append("aashirwadBox", JSON.stringify(
+  aashirwadBox.map(item => item.trim()).filter(Boolean)
+));
+
+formData.append("ritualProcess", JSON.stringify(
+  ritualProcess.map((item, index) => ({
+    title: item.title,
+    description: item.description,
+    icon: item.icon,
+    stepNumber: item.stepNumber || index + 1
+  }))
+));
+
+formData.append("about", JSON.stringify(
+  about.map(item => ({
+    title: item.title,
+    content: item.content,
+    image: item.image
+  }))
+));
+
       if (image.bytes) {
         formData.append("image", image.bytes);
       }
@@ -872,7 +1019,7 @@ const AddPujaContent = () => {
     );
   }
 
-  const renderTabContent = () => {
+   const renderTabContent = () => {
     const props = {
       inputFieldDetail,
       setInputFieldDetail,
@@ -912,8 +1059,16 @@ const AddPujaContent = () => {
       handleMainImageUpload,
       vedicProcedure,
       setVedicProcedure,
+      whyPerformReasons,
+      setWhyPerformReasons,
+      aashirwadBox,
+      setAashirwadBox,
+      ritualProcess,
+      setRitualProcess,
+      about,
+      setAbout,
     };
-    console.log("imaggggggggggggggggggggggggggggggggg", props.image.file)
+
     switch (activeTab) {
       case 0:
         return <BasicInfoTab {...props} />;
@@ -930,28 +1085,37 @@ const AddPujaContent = () => {
             fieldErrors={fieldErrors}
           />
         );
-      case 3: // NEW: Vedic Procedure
-      return (
-        <VedicProcedureTab
-          vedicProcedure={vedicProcedure}
-          setVedicProcedure={setVedicProcedure}
-          fieldErrors={fieldErrors}
-        />
-      );
-    case 4:
-      return <WhoShouldBookTab {...props} />;
-    case 5:
-      return <WhyPerformTab {...props} />;
-    case 6:
-      return <PackagesTab {...props} />;
-    case 7:
-      return <TestimonialsTab {...props} />;
-    case 8:
-      return <FAQsTab {...props} />;
+      case 3:
+        return (
+          <VedicProcedureTab
+            vedicProcedure={vedicProcedure}
+            setVedicProcedure={setVedicProcedure}
+            fieldErrors={fieldErrors}
+          />
+        );
+      case 4:
+        return <WhoShouldBookTab {...props} />;
+      case 5:
+        return <WhyPerformTab {...props} />;
+      case 6:
+        return <WhyPerformReasonsTab {...props} />;
+      case 7:
+        return <AashirwadBoxTab {...props} />;
+      case 8:
+        return <RitualProcessTab {...props} />;
+      case 9:
+        return <PackagesTab {...props} />;
+      case 10:
+        return <TestimonialsTab {...props} />;
+      case 11:
+        return <FAQsTab {...props} />;
+      case 12:
+        return <AboutTab {...props} />;
       default:
         return <BasicInfoTab {...props} />;
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
