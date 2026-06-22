@@ -247,6 +247,7 @@ interface TemplateForm {
   addons: AddonField[];
   normalizationMap: { key: string; value: string }[];
   requiredBackendFields: string;
+  orderPrefix: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -1052,6 +1053,7 @@ const FormTemplateEditor = () => {
     addons: [],
     normalizationMap: [],
     requiredBackendFields: 'name,email,whatsapp,reportLanguage,dateOfBirth',
+    orderPrefix: '#LJR-',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1085,6 +1087,7 @@ const handleClone = async () => {
       addons: (t.addons || []).map(hydrateAddon),
       normalizationMap: Object.entries(t.normalizationMap || {}).map(([key, value]) => ({ key, value: value as string })),
       requiredBackendFields: (t.requiredBackendFields || []).join(','),
+      orderPrefix: t.orderPrefix,
       // planId stays as the current new planId — don't copy it
     }));
     Swal.fire('Cloned!', `Template copied from "${cloneSource}". Review and save.`, 'success');
@@ -1110,6 +1113,7 @@ const handleClone = async () => {
             addons: (t.addons || []).map(hydrateAddon),
             normalizationMap: normMap,
             requiredBackendFields: (t.requiredBackendFields || []).join(','),
+            orderPrefix: t.orderPrefix || '#LJR-',
           });
           setIsNew(false);
         } else {
@@ -1143,6 +1147,7 @@ const handleClone = async () => {
         addons: stripAddonTempIds(form.addons).map((a, i) => ({ ...a, order: i })),
         normalizationMap: normMap,
         requiredBackendFields: form.requiredBackendFields.split(',').map(s => s.trim()).filter(Boolean),
+        orderPrefix: form.orderPrefix,
       };
 
       const url = `/api/life-journey-report/form-templates${isNew ? '' : `/${planId}`}`;
@@ -1316,8 +1321,20 @@ const handleClone = async () => {
                 <Input value={form.formTitle} onChange={e => setForm(prev => ({ ...prev, formTitle: e.target.value }))} placeholder="Book Your Report" /></div>
               <div><Label>Submit button label</Label>
                 <Input value={form.submitLabel} onChange={e => setForm(prev => ({ ...prev, submitLabel: e.target.value }))} placeholder="Pay with Razorpay" /></div>
-            </div>
+            </div> 
           </div>
+
+          <div>
+          <Label>Order prefix</Label>
+          <Input
+            value={form.orderPrefix}
+            onChange={e => setForm(prev => ({ ...prev, orderPrefix: e.target.value }))}
+            placeholder="e.g. #LJR-"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Prepended to order IDs. e.g. <code className="bg-gray-100 px-1 rounded">#LJR-</code>, <code className="bg-gray-100 px-1 rounded">#KP-</code>
+          </p>
+        </div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-3">
             <h2 className="font-semibold text-gray-800">Normalization map</h2>
