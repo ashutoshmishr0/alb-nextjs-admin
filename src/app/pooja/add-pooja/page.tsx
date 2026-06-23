@@ -490,6 +490,63 @@ const [vedicProcedure, setVedicProcedure] = useState([
             setFaqs(mappedFaqs);
           }
 
+          if (pujaData.benefitPoints) {
+            const rawBenefitPoints = typeof pujaData.benefitPoints === 'string'
+              ? JSON.parse(pujaData.benefitPoints || '[]')
+              : pujaData.benefitPoints;
+            if (Array.isArray(rawBenefitPoints) && rawBenefitPoints.length > 0) {
+              const mappedBenefitPoints = rawBenefitPoints.map((item: any, index: number) => ({
+                id: item.id ?? index + 1,
+                title: item.title || '',
+                description: item.description || '',
+                icon: item.icon || 'Star'
+              }));
+              setBenefitPoints(mappedBenefitPoints);
+            }
+          }
+
+          if (pujaData.vedicProcedure) {
+            const rawVedicProcedure = typeof pujaData.vedicProcedure === 'string'
+              ? JSON.parse(pujaData.vedicProcedure || '[]')
+              : pujaData.vedicProcedure;
+            if (Array.isArray(rawVedicProcedure) && rawVedicProcedure.length > 0) {
+              const mappedVedicProcedure = rawVedicProcedure.map((item: any, index: number) => ({
+                id: item.id ?? index + 1,
+                pointNumber: item.pointNumber ?? index + 1,
+                title: item.title || '',
+                description: item.description || ''
+              }));
+              setVedicProcedure(mappedVedicProcedure);
+            }
+          }
+
+          if (pujaData.sacredRituals) {
+            const rawSacredRituals = typeof pujaData.sacredRituals === 'string'
+              ? JSON.parse(pujaData.sacredRituals || '[]')
+              : pujaData.sacredRituals;
+            if (Array.isArray(rawSacredRituals) && rawSacredRituals.length > 0) {
+              const mappedSacredRituals = rawSacredRituals.map((item: any, index: number) => ({
+                id: item.id ?? index + 1,
+                icon: item.icon || '',
+                title: item.title || '',
+                description: item.description || ''
+              }));
+              setSacredRituals(mappedSacredRituals);
+            }
+          }
+
+          if (pujaData.aashirwadBox) {
+            const rawAashirwadBox = typeof pujaData.aashirwadBox === 'string'
+              ? JSON.parse(pujaData.aashirwadBox || '[]')
+              : pujaData.aashirwadBox;
+            if (Array.isArray(rawAashirwadBox) && rawAashirwadBox.length > 0) {
+              const filteredAashirwadBox = rawAashirwadBox
+                .map((item: any) => item?.toString() || '')
+                .filter((item: string) => item.trim() !== '');
+              setAashirwadBox(filteredAashirwadBox.length > 0 ? filteredAashirwadBox : ['']);
+            }
+          }
+
           if (pujaData.mobileImage) {
             const imgUrl = pujaData.mobileImage;
             setMobileImage({
