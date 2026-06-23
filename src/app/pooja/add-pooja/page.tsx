@@ -891,6 +891,12 @@ console.log("imaggggggggggggggggggggggggggggggggg", props.image.file)
     handleLaptopImageUpload={handleLaptopImageUpload}
      benefitPoints={benefitPoints}
     setBenefitPoints={setBenefitPoints}
+    vedicProcedure={vedicProcedure}
+    setVedicProcedure={setVedicProcedure}
+    sacredRituals={sacredRituals}
+    setSacredRituals={setSacredRituals}
+    aashirwadBox={aashirwadBox}
+    setAashirwadBox={setAashirwadBox}
         />;
       default:
         return <BasicInfoTab {...props} />;
