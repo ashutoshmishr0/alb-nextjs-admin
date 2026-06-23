@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// ========== TAB 0: Basic Info Validation ==========
+// Tab 0: Basic Info Validation
 export const basicInfoSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   pujaName: z.string().min(3, 'Puja name must be at least 3 characters'),
@@ -19,14 +19,11 @@ export const basicInfoSchema = z.object({
   purpose: z.string().min(1, 'Purpose is required'),
   mode: z.string().min(1, 'Mode is required'),
   inclusion: z.string().min(1, 'Inclusion is required'),
-  discountedPrice: z.string().optional(),
+  discountedPrice : z.string().optional(),
   subTitle: z.string().max(100, 'Subtitle cannot exceed 100 characters').optional(),
-  pujaDay: z.string().optional(),
-  pujaVenue: z.string().optional(),
-  templeLocation: z.string().optional(),
 });
 
-// ========== IMAGES Validation ==========
+// Images Validation (part of Tab 0 in UI)
 export const imagesSchema = z.object({
   mainImage: z.object({
     file: z.string().min(1, 'Main image is required'),
@@ -35,41 +32,24 @@ export const imagesSchema = z.object({
   }).refine((img) => img.file.length > 0, {
     message: 'Main image is required'
   }),
-  mobileImage: z.object({
-    file: z.string().optional(),
-    bytes: z.any().nullable(),
-    url: z.string()
-  }).optional(),
 });
 
-// ========== TAB 1: Details Validation ==========
+// Tab 1: Details Validation
 export const detailsSchema = z.object({
   pujaDetails: z.string().min(20, 'Puja details must be at least 20 characters'),
   whyPerform: z.string().min(20, 'Why perform section must be at least 20 characters'),
 });
 
-// ========== TAB 2: Benefits Validation ==========
+// Tab 2: Benefits Validation
 export const benefitsSchema = z.object({
-  benefits: z.array(
-    z.object({
-      title: z.string().min(1, 'Benefit title is required'),
-      description: z.string().optional(),
-      icon: z.string().optional(),
-      _id: z.string().optional(),
-    })
-  ).min(1, 'At least one benefit is required')
-  .refine((arr) => arr.some(item => item.title?.trim().length > 0), {
-    message: 'At least one valid benefit with a title is required'
-  }),
+  benefits: z.array(z.string().min(1, 'Benefit cannot be empty'))
+    .min(1, 'At least one benefit is required')
+    .refine((arr) => arr.some(item => item.trim().length > 0), {
+      message: 'At least one valid benefit is required'
+    }),
 });
 
-// ========== TAB 3: Vedic Procedure Validation ==========
-export const vedicProcedureSchema = z.object({
-  vedicProcedureTitle: z.string().min(3, 'Vedic procedure title must be at least 3 characters'),
-  vedicProcedureDescription: z.string().min(20, 'Vedic procedure description must be at least 20 characters'),
-});
-
-// ========== TAB 4: Who Should Book Validation ==========
+// Tab 3: Who Should Book Validation
 export const whoShouldBookSchema = z.object({
   whoShouldBook: z.array(z.string().min(1, 'Entry cannot be empty'))
     .min(1, 'At least one entry is required')
@@ -78,7 +58,7 @@ export const whoShouldBookSchema = z.object({
     }),
 });
 
-// ========== TAB 5: Why You Should Validation ==========
+// Tab 4: Why You Should Validation
 export const whyYouShouldSchema = z.object({
   whyYouShould: z.array(
     z.object({
@@ -90,41 +70,7 @@ export const whyYouShouldSchema = z.object({
   ).min(1, 'At least one reason is required'),
 });
 
-// ========== TAB 6: Why Perform Reasons Validation ==========
-export const whyPerformReasonsSchema = z.object({
-  whyPerformReasons: z.array(
-    z.object({
-      title: z.string().min(3, 'Title must be at least 3 characters'),
-      description: z.string().min(10, 'Description must be at least 10 characters'),
-      icon: z.string().min(1, 'Icon is required'),
-      _id: z.string().optional(),
-    })
-  ).min(1, 'At least one reason is required'),
-});
-
-// ========== TAB 7: Aashirwad Box Validation ==========
-export const aashirwadBoxSchema = z.object({
-  aashirwadBox: z.array(z.string().min(1, 'Item cannot be empty'))
-    .min(1, 'At least one item is required')
-    .refine((arr) => arr.some(item => item.trim().length > 0), {
-      message: 'At least one valid item is required'
-    }),
-});
-
-// ========== TAB 8: Ritual Process Validation ==========
-export const ritualProcessSchema = z.object({
-  ritualProcess: z.array(
-    z.object({
-      title: z.string().min(3, 'Step title must be at least 3 characters'),
-      description: z.string().min(10, 'Step description must be at least 10 characters'),
-      icon: z.string().optional(),
-      stepNumber: z.number().min(1, 'Step number must be at least 1'),
-      _id: z.string().optional(),
-    })
-  ).min(1, 'At least one step is required'),
-});
-
-// ========== TAB 9: Packages Validation ==========
+// Tab 5: Packages Validation
 export const packagesSchema = z.object({
   pricingPackages: z.array(
     z.object({
@@ -132,7 +78,6 @@ export const packagesSchema = z.object({
       title: z.string().min(3, 'Package title must be at least 3 characters'),
       price: z.number().min(1, 'Package price must be greater than 0'),
       isPopular: z.boolean(),
-      badge: z.string().optional(),
       features: z.array(z.string().min(1, 'Feature cannot be empty'))
         .min(1, 'At least one feature is required')
         .refine((arr) => arr.some(item => item.trim().length > 0), {
@@ -146,7 +91,7 @@ export const packagesSchema = z.object({
   ).min(1, 'At least one package is required'),
 });
 
-// ========== TAB 10: Testimonials Validation ==========
+// Tab 6: Testimonials Validation (Optional)
 export const testimonialsSchema = z.object({
   testimonials: z.array(
     z.object({
@@ -162,7 +107,7 @@ export const testimonialsSchema = z.object({
   ).optional(),
 });
 
-// ========== TAB 11: FAQs Validation ==========
+// Tab 7: FAQs Validation (Optional)
 export const faqsSchema = z.object({
   faqs: z.array(
     z.object({
@@ -173,23 +118,21 @@ export const faqsSchema = z.object({
   ).optional(),
 });
 
-// ========== TAB 12: About Validation ==========
-export const aboutSchema = z.object({
-  about: z.array(
-    z.object({
-      title: z.string().min(3, 'Title must be at least 3 characters'),
-      content: z.string().min(20, 'Content must be at least 20 characters'),
-      image: z.string().optional(),
-      _id: z.string().optional(),
-    })
-  ).optional(),
-});
+// Combined validation for final submit
+export const fullPujaSchema = z.object({
+  ...basicInfoSchema.shape,
+  ...detailsSchema.shape,
+}).merge(benefitsSchema)
+  .merge(whoShouldBookSchema)
+  .merge(whyYouShouldSchema)
+  .merge(packagesSchema);
 
-// ========== Helper: Validate Tab ==========
+// Helper function to validate specific tab
 export const validateTab = (tabIndex: number, data: any) => {
   try {
     switch (tabIndex) {
-      case 0: // Basic Info
+      case 0: // Basic Info + Images (UI Tab 0)
+        // First validate basic info
         const basicData = {
           categoryId: data.categoryId || '',
           pujaName: data.pujaName || '',
@@ -201,14 +144,11 @@ export const validateTab = (tabIndex: number, data: any) => {
           mode: data.mode || '',
           inclusion: data.inclusion || '',
           discountedPrice: data.discountedPrice || '',
-          subTitle: data.subTitle || '',
-          pujaDay: data.pujaDay || '',
-          pujaVenue: data.pujaVenue || '',
-          templeLocation: data.templeLocation || '',
+          subTitle: data.subTitle || ''
         };
         basicInfoSchema.parse(basicData);
         
-        // Validate main image
+        // Then validate main image
         if (data.mainImage) {
           imagesSchema.parse({ mainImage: data.mainImage });
         } else {
@@ -220,60 +160,35 @@ export const validateTab = (tabIndex: number, data: any) => {
         }
         return { success: true, errors: null };
       
-      case 1: // Details
+      case 1: // Details (UI Tab 1)
         detailsSchema.parse(data);
         return { success: true, errors: null };
       
-      case 2: // Benefits
+      case 2: // Benefits (UI Tab 2)
         benefitsSchema.parse(data);
         return { success: true, errors: null };
       
-      case 3: // Vedic Procedure
-        vedicProcedureSchema.parse({
-          vedicProcedureTitle: data.vedicProcedureTitle || '',
-          vedicProcedureDescription: data.vedicProcedureDescription || ''
-        });
-        return { success: true, errors: null };
-      
-      case 4: // Who Should Book
+      case 3: // Who Should Book (UI Tab 3)
         whoShouldBookSchema.parse(data);
         return { success: true, errors: null };
       
-      case 5: // Why You Should
+      case 4: // Why You Should (UI Tab 4)
         whyYouShouldSchema.parse(data);
         return { success: true, errors: null };
       
-      case 6: // Why Perform Reasons
-        whyPerformReasonsSchema.parse(data);
-        return { success: true, errors: null };
-      
-      case 7: // Aashirwad Box
-        aashirwadBoxSchema.parse(data);
-        return { success: true, errors: null };
-      
-      case 8: // Ritual Process
-        ritualProcessSchema.parse(data);
-        return { success: true, errors: null };
-      
-      case 9: // Packages
+      case 5: // Packages (UI Tab 5)
         packagesSchema.parse(data);
         return { success: true, errors: null };
       
-      case 10: // Testimonials (optional)
+      case 6: // Testimonials (UI Tab 6) - optional
         if (data.testimonials && data.testimonials.length > 0) {
           testimonialsSchema.parse(data);
         }
         return { success: true, errors: null };
       
-      case 11: // FAQs (optional)
+      case 7: // FAQs (UI Tab 7) - optional
         if (data.faqs && data.faqs.length > 0) {
           faqsSchema.parse(data);
-        }
-        return { success: true, errors: null };
-      
-      case 12: // About (optional)
-        if (data.about && data.about.length > 0) {
-          aboutSchema.parse(data);
         }
         return { success: true, errors: null };
       
@@ -293,15 +208,3 @@ export const validateTab = (tabIndex: number, data: any) => {
     return { success: false, errors: [{ path: 'unknown', message: 'Validation failed' }] };
   }
 };
-
-// ========== Full Schema for Final Submit ==========
-export const fullPujaSchema = z.object({
-  ...basicInfoSchema.shape,
-  ...detailsSchema.shape,
-}).merge(benefitsSchema)
-  .merge(whoShouldBookSchema)
-  .merge(whyYouShouldSchema)
-  .merge(whyPerformReasonsSchema)
-  .merge(aashirwadBoxSchema)
-  .merge(ritualProcessSchema)
-  .merge(packagesSchema);

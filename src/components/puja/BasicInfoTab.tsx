@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { Info, Upload, Image as ImageIcon, X, Plus } from 'lucide-react';
+import React, { useRef, useState, useCallback } from 'react';
+import { Eye, Info, Upload, Image as ImageIcon, X } from 'lucide-react';
 import Image from 'next/image';
 import ReactCrop, {
   centerCrop,
@@ -21,28 +21,19 @@ interface Props {
   mobileImagePreview?: string;
   handleMobileImageUpload?: (file: File, previewUrl: string) => void;
   handleMainImageUpload?: (file: File, previewUrl: string) => void;
-  desktopImage?: any;
-  desktopImagePreview?: string;
-  handleDesktopImageUpload?: (file: File, previewUrl: string) => void;
   galleryImages: File[];
   galleryPreviews: string[];
   handleGalleryImages: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeGalleryImage: (index: number) => void;
   editId?: string | null;
   fieldErrors?: Record<string, string>;
-  existingGalleryImages?: string[];
-  removeExistingGalleryImage?: (index: number) => void;
 }
 
 // ── Crop helpers ──────────────────────────────────────────────
-const MAIN_ASPECT = 1536 / 1024;
-const MOBILE_ASPECT = 300 / 300;
-const DESKTOP_ASPECT = 1920 / 750;
+const MAIN_ASPECT = 1536 / 1024;   // landscape ~1.5
+const MOBILE_ASPECT = 300 / 300;   // portrait  ~0.857
 const MAIN_OUTPUT = { w: 1536, h: 1024 };
 const MOBILE_OUTPUT = { w: 300, h: 300 };
-const DESKTOP_OUTPUT = { w: 1920, h: 750 };
-
-type ImageType = 'main' | 'mobile' | 'desktop';
 
 function makeCenteredCrop(mediaW: number, mediaH: number, aspect: number): Crop {
   return centerCrop(
@@ -128,7 +119,9 @@ const CropModal: React.FC<CropModalProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-gray-800">Crop Image</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {label}
+            </p>
           </div>
           <button
             type="button"
@@ -206,12 +199,10 @@ const UploadBox: React.FC<UploadBoxProps> = ({
         error ? 'border-red-400 bg-red-50' : previewSrc ? 'border-gray-300 bg-white' : 'border-gray-300 bg-gray-50'
       }`}
     >
-      {previewSrc ? (
+        {previewSrc ? (
         <div className="space-y-2">
-          <div
-            className="mx-auto overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-gray-100"
-            style={{ height: '160px' }}
-          >
+          <div className="mx-auto overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-gray-100"
+            style={{ height: '160px' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewSrc} alt="Preview" className="w-full h-full object-contain" />
           </div>
@@ -241,30 +232,24 @@ const BasicInfoTab: React.FC<Props> = ({
   mobileImagePreview = '',
   handleMobileImageUpload,
   handleMainImageUpload,
-  desktopImage,
-  desktopImagePreview = '',
-  handleDesktopImageUpload,
   galleryImages,
   galleryPreviews,
   handleGalleryImages,
   removeGalleryImage,
   editId,
-  fieldErrors = {},
-  existingGalleryImages = [],
-  removeExistingGalleryImage,
+  fieldErrors = {}
 }) => {
   const mainImageInputRef = useRef<HTMLInputElement>(null);
   const mobileImageInputRef = useRef<HTMLInputElement>(null);
-  const desktopImageInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  // Crop modal state
   const [cropModal, setCropModal] = useState<{
     open: boolean;
     imgSrc: string;
-    type: ImageType;
+    type: 'main' | 'mobile';
   }>({ open: false, imgSrc: '', type: 'main' });
 
-  // ── Preview sources ──
   const mainPreviewSrc = image?.bytes
     ? imagePreview
     : image?.file
@@ -277,24 +262,21 @@ const BasicInfoTab: React.FC<Props> = ({
       ? `${process.env.NEXT_PUBLIC_IMAGE_URL3}${mobileImage.file}`
       : mobileImagePreview || '';
 
-  const desktopPreviewSrc = desktopImage?.bytes
-    ? desktopImagePreview
-    : desktopImage?.file
-      ? `${process.env.NEXT_PUBLIC_IMAGE_URL3}${desktopImage.file}`
-      : desktopImagePreview || '';
-
-  // ── File picker ──
-  const openFilePicker = (type: ImageType) => {
+  // Open file picker → read as dataURL → open crop modal
+  const openFilePicker = (type: 'main' | 'mobile') => {
     if (type === 'main') mainImageInputRef.current?.click();
-    else if (type === 'mobile') mobileImageInputRef.current?.click();
-    else desktopImageInputRef.current?.click();
+    else mobileImageInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: ImageType) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'main' | 'mobile'
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = '';
 
+    // Size guard: 5MB
     if (file.size > 5 * 1024 * 1024) {
       alert('Image must be under 5MB');
       return;
@@ -312,6 +294,8 @@ const BasicInfoTab: React.FC<Props> = ({
       if (handleMainImageUpload) {
         handleMainImageUpload(file, preview);
       } else {
+        // Fallback: synthesise a fake event for the existing handler
+        // (prefer passing handleMainImageUpload from parent)
         const dt = new DataTransfer();
         dt.items.add(file);
         const fakeEvent = {
@@ -319,10 +303,8 @@ const BasicInfoTab: React.FC<Props> = ({
         } as unknown as React.ChangeEvent<HTMLInputElement>;
         handleImageUpload(fakeEvent);
       }
-    } else if (cropModal.type === 'mobile') {
-      handleMobileImageUpload?.(file, preview);
     } else {
-      handleDesktopImageUpload?.(file, preview);
+      handleMobileImageUpload?.(file, preview);
     }
     setCropModal({ open: false, imgSrc: '', type: 'main' });
   };
@@ -331,35 +313,19 @@ const BasicInfoTab: React.FC<Props> = ({
     setCropModal({ open: false, imgSrc: '', type: 'main' });
   };
 
-  // ── Crop modal config by type ──
-  const cropConfig = {
-    main:    { aspect: MAIN_ASPECT,    outputW: MAIN_OUTPUT.w,    outputH: MAIN_OUTPUT.h,    label: 'Main Image (Landscape 1536×1024)' },
-    mobile:  { aspect: MOBILE_ASPECT,  outputW: MOBILE_OUTPUT.w,  outputH: MOBILE_OUTPUT.h,  label: 'Mobile Image (Square 300×300)' },
-    desktop: { aspect: DESKTOP_ASPECT, outputW: DESKTOP_OUTPUT.w, outputH: DESKTOP_OUTPUT.h, label: 'Desktop Image (Wide Banner 1920×750)' },
-  };
-
   return (
     <div className="space-y-8">
 
       {/* ── Images Section ─────────────────────────────────── */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-red-600" />
-            <h2 className="text-xl font-semibold text-gray-800">Images</h2>
-          </div>
-          <button
-            type="button"
-            onClick={() => galleryInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-          >
-            <Plus className="w-4 h-4" />
-            Add Gallery Images
-          </button>
+        <div className="flex items-center gap-2">
+          <ImageIcon className="w-5 h-5 text-red-600" />
+          <h2 className="text-xl font-semibold text-gray-800">Images</h2>
         </div>
 
-        {/* ── 3-column image upload grid ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Main + Mobile side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Main Image */}
           <UploadBox
             label="Main Image"
             required
@@ -369,66 +335,44 @@ const BasicInfoTab: React.FC<Props> = ({
             onClick={() => openFilePicker('main')}
             aspectLabel="Landscape"
           />
+
+          {/* Mobile Image */}
           <UploadBox
             label="Mobile Image"
             required={!editId}
             previewSrc={mobilePreviewSrc}
-            hint="Square · 300×300px · JPG/PNG · max 5MB"
+            hint="Portrait · JPG/PNG · max 5MB"
             error={fieldErrors['mobileImage']}
             onClick={() => openFilePicker('mobile')}
             aspectLabel="Portrait square"
           />
-          <UploadBox
-            label="Desktop Image"
-            previewSrc={desktopPreviewSrc}
-            hint="Wide Banner · 1920×750px · JPG/PNG · max 5MB"
-            error={fieldErrors['desktopImage']}
-            onClick={() => openFilePicker('desktop')}
-            aspectLabel="Wide banner"
-          />
         </div>
 
-        {/* ── Hidden file inputs ── */}
-        <input ref={mainImageInputRef}    type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'main')} />
-        <input ref={mobileImageInputRef}  type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'mobile')} />
-        <input ref={desktopImageInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'desktop')} />
-        <input ref={galleryInputRef}      type="file" className="hidden" accept="image/*" multiple onChange={handleGalleryImages} />
+        {/* Hidden file inputs */}
+        <input
+          ref={mainImageInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={(e) => handleFileChange(e, 'main')}
+        />
+        <input
+          ref={mobileImageInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={(e) => handleFileChange(e, 'mobile')}
+        />
 
-        {/* ── Gallery grid ── */}
-        {(existingGalleryImages.length > 0 || galleryPreviews.length > 0) && (
+        {/* Gallery Images */}
+        {galleryPreviews.length > 0 && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Gallery Images ({existingGalleryImages.length + galleryPreviews.length})
+              Gallery Images ({galleryPreviews.length})
             </label>
             <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              {existingGalleryImages.map((url, index) => (
-                <div key={`existing-${index}`} className="relative group">
-                  <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                    <Image
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL3}${url}`}
-                      alt={`Gallery ${index + 1}`}
-                      fill
-                      sizes="(max-width: 768px) 33vw, (max-width: 1024px) 20vw, 16vw"
-                      className="object-cover"
-                    />
-                    <span className="absolute bottom-1 right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded">
-                      Existing
-                    </span>
-                  </div>
-                  {removeExistingGalleryImage && (
-                    <button
-                      type="button"
-                      onClick={() => removeExistingGalleryImage(index)}
-                      className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              ))}
-
               {galleryPreviews.map((preview, index) => (
-                <div key={`new-${index}`} className="relative group">
+                <div key={index} className="relative group">
                   <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm">
                     <Image
                       src={preview}
@@ -437,9 +381,6 @@ const BasicInfoTab: React.FC<Props> = ({
                       sizes="(max-width: 768px) 33vw, (max-width: 1024px) 20vw, 16vw"
                       className="object-cover"
                     />
-                    <span className="absolute bottom-1 right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded">
-                      New
-                    </span>
                   </div>
                   <button
                     type="button"
@@ -609,7 +550,7 @@ const BasicInfoTab: React.FC<Props> = ({
           {/* Duration */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Duration <span className="text-red-500">*</span>
+              Duration
             </label>
             <input
               type="text"
@@ -620,7 +561,6 @@ const BasicInfoTab: React.FC<Props> = ({
                 fieldErrors['duration'] ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="e.g., 2-3 hours"
-              required
             />
             {fieldErrors['duration'] && (
               <p className="text-red-500 text-xs mt-1.5">{fieldErrors['duration']}</p>
@@ -641,30 +581,9 @@ const BasicInfoTab: React.FC<Props> = ({
                 fieldErrors['purpose'] ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="e.g., To seek divine blessings for protection and strength"
-              required
             />
             {fieldErrors['purpose'] && (
               <p className="text-red-500 text-xs mt-1.5">{fieldErrors['purpose']}</p>
-            )}
-          </div>
-
-          {/* Temple Location */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Temple Location
-            </label>
-            <input
-              type="text"
-              name="templeLocation"
-              value={inputFieldDetail.templeLocation || ''}
-              onChange={handleInputChange}
-              className={`w-full h-10 px-3 text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all ${
-                fieldErrors['templeLocation'] ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="e.g., Varanasi, Haridwar"
-            />
-            {fieldErrors['templeLocation'] && (
-              <p className="text-red-500 text-xs mt-1.5">{fieldErrors['templeLocation']}</p>
             )}
           </div>
 
@@ -722,7 +641,6 @@ const BasicInfoTab: React.FC<Props> = ({
                 fieldErrors['mode'] ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="e.g., Online with Personalized Sankalp and Prasad Delivery"
-              required
             />
             {fieldErrors['mode'] && (
               <p className="text-red-500 text-xs mt-1.5">{fieldErrors['mode']}</p>
@@ -764,7 +682,6 @@ const BasicInfoTab: React.FC<Props> = ({
                 fieldErrors['inclusion'] ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="e.g., Complete rituals, Vedic Mantra Chanting, Havan, Sankalp, Energized Prasad Potli, and Puja Recording"
-              required
             />
             {fieldErrors['inclusion'] && (
               <p className="text-red-500 text-xs mt-1.5">{fieldErrors['inclusion']}</p>
@@ -778,14 +695,15 @@ const BasicInfoTab: React.FC<Props> = ({
       {cropModal.open && (
         <CropModal
           imgSrc={cropModal.imgSrc}
-          aspect={cropConfig[cropModal.type].aspect}
-          label={cropConfig[cropModal.type].label}
-          outputW={cropConfig[cropModal.type].outputW}
-          outputH={cropConfig[cropModal.type].outputH}
+          aspect={cropModal.type === 'main' ? MAIN_ASPECT : MOBILE_ASPECT}
+          label={cropModal.type === 'main' ? 'Main Image (Landscape)' : 'Mobile Image (Portrait)'}
+          outputW={cropModal.type === 'main' ? MAIN_OUTPUT.w : MOBILE_OUTPUT.w}
+          outputH={cropModal.type === 'main' ? MAIN_OUTPUT.h : MOBILE_OUTPUT.h}
           onConfirm={handleCropConfirm}
           onCancel={handleCropCancel}
         />
       )}
+
     </div>
   );
 };
