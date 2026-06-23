@@ -1232,13 +1232,12 @@ const handleClone = async () => {
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
-        {(['sections', 'addons', 'settings'] as const).map(tab => (
+        {(['sections', 'settings'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all capitalize
               ${activeTab === tab ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
             {tab}
             {tab === 'sections' && <span className="ml-1.5 text-xs text-gray-400">{form.sections.length}</span>}
-            {tab === 'addons' && <span className="ml-1.5 text-xs text-gray-400">{form.addons.length}</span>}
           </button>
         ))}
       </div>
