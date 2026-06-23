@@ -1,6 +1,8 @@
 // components/puja/RitualsTab.tsx
 import React, { useState, useRef } from 'react';
-import { X, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, Trash2, Upload, Image as ImageIcon, Search } from 'lucide-react';
+// Import 'lucide-react' icons as a namespace
+import * as Icons from 'lucide-react'; 
 import ReactCrop, {
   centerCrop,
   makeAspectCrop,
@@ -150,6 +152,123 @@ const CropModal: React.FC<CropModalProps> = ({
           </button>
         </div>
       </div>
+    </div>
+  );
+};
+
+// ── Reusable Icon Picker Dropdown Component ─────────────
+// Icon list is computed once at module load (was being recomputed on
+// every render/keystroke before). Added a click-outside listener so the
+// dropdown actually closes - previously the only way to close it was to
+// select an icon, so clicking elsewhere on the page just left it open.
+const ICON_NAMES = Object.keys(Icons).filter((name) => {
+  if (name === 'default' || name === 'createLucideIcon' || name === 'icons') return false;
+  const icon = Icons[name as keyof typeof Icons] as unknown;
+  // In current lucide-react versions, icon components are forwardRef
+  // objects (typeof === 'object'), not plain functions. The old
+  // `typeof icon === 'function'` check excluded every real icon,
+  // which is why the dropdown always showed "No icons found."
+  if (typeof icon === 'function') return true;
+  return typeof icon === 'object' && icon !== null && ('$$typeof' in icon || 'render' in icon);
+});
+
+interface IconPickerProps {
+  value: string;
+  onChange: (iconName: string) => void;
+  placeholder?: string;
+}
+
+const IconPicker: React.FC<IconPickerProps> = ({ value, onChange, placeholder = "Select Icon" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close the dropdown when clicking anywhere outside it.
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+        setSearchTerm("");
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const filteredIcons = searchTerm
+    ? ICON_NAMES.filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : ICON_NAMES;
+
+  // Get the selected icon component
+  const SelectedIcon = value && Icons[value as keyof typeof Icons];
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm border rounded-lg bg-white hover:bg-gray-50 transition-colors ${value ? 'border-gray-300' : 'border-gray-200 text-gray-400'}`}
+      >
+        <div className="flex items-center gap-2 truncate">
+          {SelectedIcon ? (
+            <>
+              {React.createElement(SelectedIcon as any, { className: "w-4 h-4 flex-shrink-0 text-gray-700" })}
+              <span className="text-gray-700 truncate">{value}</span>
+            </>
+          ) : (
+            <span>{placeholder}</span>
+          )}
+        </div>
+        <span className="text-gray-400 text-xs">▼</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 z-20 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 w-72 max-h-72 flex flex-col">
+          {/* Search Bar */}
+          <div className="relative mb-2 flex-shrink-0">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search icons..."
+              className="w-full pl-8 pr-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
+              autoFocus
+            />
+          </div>
+          
+          {/* Icons Grid */}
+          <div className="overflow-y-auto flex-1 grid grid-cols-4 sm:grid-cols-5 gap-1 pr-1">
+            {filteredIcons.slice(0, 60).map((iconName) => {
+              const IconComp = Icons[iconName as keyof typeof Icons];
+              return (
+                <button
+                  key={iconName}
+                  type="button"
+                  onClick={() => {
+                    onChange(iconName);
+                    setIsOpen(false);
+                    setSearchTerm("");
+                  }}
+                  className={`flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-gray-100 transition-colors ${value === iconName ? 'bg-red-50 ring-1 ring-red-500' : ''}`}
+                  title={iconName}
+                >
+                  {React.createElement(IconComp as any, { className: "w-5 h-5 text-gray-700" })}
+                  <span className="text-[9px] text-gray-500 mt-0.5 truncate w-full text-center">
+                    {iconName}
+                  </span>
+                </button>
+              );
+            })}
+            {filteredIcons.length === 0 && (
+              <div className="col-span-5 text-center text-xs text-gray-400 py-4">
+                No icons found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -340,17 +459,16 @@ const RitualsTab = ({
         </div>
         {benefitPoints.map((item, index) => (
           <div key={item.id || index} className="flex gap-3 mb-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
-            <div className="w-20">
-              <input
-                type="text"
+            <div className="w-24">
+              <label className="block text-[10px] text-gray-500 mb-1">Icon</label>
+              <IconPicker
                 value={item.icon}
-                onChange={(e) => {
+                onChange={(iconName) => {
                   const updated = [...benefitPoints];
-                  updated[index].icon = e.target.value;
+                  updated[index].icon = iconName;
                   setBenefitPoints(updated);
                 }}
-                placeholder="Icon"
-                className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm"
+                placeholder="Choose Icon"
               />
             </div>
             <div className="flex-1">
@@ -478,17 +596,16 @@ const RitualsTab = ({
         </div>
         {sacredRituals.map((item, index) => (
           <div key={item.id || index} className="flex gap-3 mb-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
-            <div className="w-20">
-              <input
-                type="text"
+            <div className="w-24">
+              <label className="block text-[10px] text-gray-500 mb-1">Icon</label>
+              <IconPicker
                 value={item.icon}
-                onChange={(e) => {
+                onChange={(iconName) => {
                   const updated = [...sacredRituals];
-                  updated[index].icon = e.target.value;
+                  updated[index].icon = iconName;
                   setSacredRituals(updated);
                 }}
-                placeholder="Icon"
-                className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm"
+                placeholder="Choose Icon"
               />
             </div>
             <div className="flex-1">
