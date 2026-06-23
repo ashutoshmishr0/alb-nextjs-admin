@@ -9,9 +9,9 @@ import ReactCrop, {
 } from 'react-image-crop';
 
 // ── Crop helpers ──────────────────────────────────────────────
-const MAIN_ASPECT = 1536 / 1024;   // landscape ~1.5
-const MOBILE_ASPECT = 300 / 300;   // portrait  ~0.857
-const LAPTOP_ASPECT = 1280 / 720;  // landscape ~1.78
+const MAIN_ASPECT = 1536 / 1024;
+const MOBILE_ASPECT = 300 / 300;
+const LAPTOP_ASPECT = 1280 / 720;
 
 const MAIN_OUTPUT = { w: 1536, h: 1024 };
 const MOBILE_OUTPUT = { w: 300, h: 300 };
@@ -101,9 +101,7 @@ const CropModal: React.FC<CropModalProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-base font-semibold text-gray-800">Crop Image</h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {label}
-            </p>
+            <p className="text-xs text-gray-400 mt-0.5">{label}</p>
           </div>
           <button
             type="button"
@@ -181,10 +179,12 @@ const UploadBox: React.FC<UploadBoxProps> = ({
         error ? 'border-red-400 bg-red-50' : previewSrc ? 'border-gray-300 bg-white' : 'border-gray-300 bg-gray-50'
       }`}
     >
-        {previewSrc ? (
+      {previewSrc ? (
         <div className="space-y-2">
-          <div className="mx-auto overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-gray-100"
-            style={{ height: '160px' }}>
+          <div
+            className="mx-auto overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-gray-100"
+            style={{ height: '160px' }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewSrc} alt="Preview" className="w-full h-full object-contain" />
           </div>
@@ -204,8 +204,6 @@ const UploadBox: React.FC<UploadBoxProps> = ({
 
 // ── Main Component ────────────────────────────────────────────
 interface RitualsTabProps {
-  inputFieldDetail: any;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   fieldErrors: Record<string, string>;
   // Images
   imagePreview: string;
@@ -230,14 +228,12 @@ interface RitualsTabProps {
   // Aashirwad Box
   aashirwadBox: string[];
   setAashirwadBox: React.Dispatch<React.SetStateAction<string[]>>;
-  // ✅ NEW: benefitPoints
+  // Benefit Points
   benefitPoints: any[];
   setBenefitPoints: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const RitualsTab = ({
-  inputFieldDetail,
-  handleInputChange,
   fieldErrors,
   imagePreview,
   handleImageUpload,
@@ -257,27 +253,23 @@ const RitualsTab = ({
   setSacredRituals,
   aashirwadBox,
   setAashirwadBox,
-  // ✅ NEW: benefitPoints
   benefitPoints,
-  setBenefitPoints
+  setBenefitPoints,
 }: RitualsTabProps) => {
   const mainImageInputRef = useRef<HTMLInputElement>(null);
   const mobileImageInputRef = useRef<HTMLInputElement>(null);
   const laptopImageInputRef = useRef<HTMLInputElement>(null);
 
-  // Crop modal state
   const [cropModal, setCropModal] = useState<{
     open: boolean;
     imgSrc: string;
     type: 'main' | 'mobile' | 'laptop';
   }>({ open: false, imgSrc: '', type: 'main' });
 
-  // Preview URLs
   const mainPreviewSrc = imagePreview || '';
   const mobilePreviewSrc = mobileImagePreview || '';
   const laptopPreviewSrc = laptopImagePreview || '';
 
-  // Open file picker
   const openFilePicker = (type: 'main' | 'mobile' | 'laptop') => {
     if (type === 'main') mainImageInputRef.current?.click();
     else if (type === 'mobile') mobileImageInputRef.current?.click();
@@ -292,7 +284,6 @@ const RitualsTab = ({
     if (!file) return;
     e.target.value = '';
 
-    // Size guard: 5MB
     if (file.size > 5 * 1024 * 1024) {
       alert('Image must be under 5MB');
       return;
@@ -307,7 +298,6 @@ const RitualsTab = ({
 
   const handleCropConfirm = (file: File, preview: string) => {
     if (cropModal.type === 'main') {
-      // Use handleImageUpload (already works)
       const dt = new DataTransfer();
       dt.items.add(file);
       const fakeEvent = {
@@ -328,209 +318,8 @@ const RitualsTab = ({
 
   return (
     <div className="space-y-8">
-      {/* ── Images Section ─────────────────────────────────── */}
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <ImageIcon className="w-5 h-5 text-red-600" />
-          <h2 className="text-xl font-semibold text-gray-800">Images</h2>
-        </div>
 
-        {/* 3 Images side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Desktop (Main) Image */}
-          <UploadBox
-            label="Desktop Image"
-            required
-            previewSrc={mainPreviewSrc}
-            hint="Landscape · 1536×1024px · JPG/PNG · max 5MB"
-            error={fieldErrors['mainImage']}
-            onClick={() => openFilePicker('main')}
-            aspectLabel="Landscape"
-          />
-
-          {/* Mobile Image */}
-          <UploadBox
-            label="Mobile Image"
-            required={false}
-            previewSrc={mobilePreviewSrc}
-            hint="Portrait · JPG/PNG · max 5MB"
-            error={fieldErrors['mobileImage']}
-            onClick={() => openFilePicker('mobile')}
-            aspectLabel="Portrait"
-          />
-
-          {/* Laptop Image */}
-          <UploadBox
-            label="Laptop Image"
-            required={false}
-            previewSrc={laptopPreviewSrc}
-            hint="Landscape · JPG/PNG · max 5MB"
-            error={fieldErrors['laptopImage']}
-            onClick={() => openFilePicker('laptop')}
-            aspectLabel="Landscape"
-          />
-        </div>
-
-        {/* Hidden file inputs */}
-        <input
-          ref={mainImageInputRef}
-          type="file"
-          className="hidden"
-          accept="image/*"
-          onChange={(e) => handleFileChange(e, 'main')}
-        />
-        <input
-          ref={mobileImageInputRef}
-          type="file"
-          className="hidden"
-          accept="image/*"
-          onChange={(e) => handleFileChange(e, 'mobile')}
-        />
-        <input
-          ref={laptopImageInputRef}
-          type="file"
-          className="hidden"
-          accept="image/*"
-          onChange={(e) => handleFileChange(e, 'laptop')}
-        />
-      </div>
-
-      {/* ── Crop Modal ─────────────────────────────────────── */}
-      {cropModal.open && (
-        <CropModal
-          imgSrc={cropModal.imgSrc}
-          aspect={cropModal.type === 'main' ? MAIN_ASPECT : cropModal.type === 'mobile' ? MOBILE_ASPECT : LAPTOP_ASPECT}
-          label={cropModal.type === 'main' ? 'Desktop Image' : cropModal.type === 'mobile' ? 'Mobile Image' : 'Laptop Image'}
-          outputW={cropModal.type === 'main' ? MAIN_OUTPUT.w : cropModal.type === 'mobile' ? MOBILE_OUTPUT.w : LAPTOP_OUTPUT.w}
-          outputH={cropModal.type === 'main' ? MAIN_OUTPUT.h : cropModal.type === 'mobile' ? MOBILE_OUTPUT.h : LAPTOP_OUTPUT.h}
-          onConfirm={handleCropConfirm}
-          onCancel={handleCropCancel}
-        />
-      )}
-
-      {/* ── Rest of the fields ────────────────────────────────── */}
-      
-      {/* Pooja Name */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Pooja Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="pujaName"
-          value={inputFieldDetail.pujaName}
-          onChange={handleInputChange}
-          placeholder="Enter Pooja Name"
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${
-            fieldErrors.pujaName ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {fieldErrors.pujaName && (
-          <p className="mt-1 text-sm text-red-500">{fieldErrors.pujaName}</p>
-        )}
-      </div>
-
-      {/* Overview */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Overview <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          name="overview"
-          value={inputFieldDetail.overview}
-          onChange={handleInputChange}
-          rows={4}
-          placeholder="Enter Pooja Description/Overview"
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${
-            fieldErrors.overview ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {fieldErrors.overview && (
-          <p className="mt-1 text-sm text-red-500">{fieldErrors.overview}</p>
-        )}
-      </div>
-
-      {/* Price */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Price <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="number"
-          name="price"
-          value={inputFieldDetail.price}
-          onChange={handleInputChange}
-          placeholder="Enter Price (e.g. 499)"
-          className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 ${
-            fieldErrors.price ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {fieldErrors.price && (
-          <p className="mt-1 text-sm text-red-500">{fieldErrors.price}</p>
-        )}
-      </div>
-
-      {/* Tag */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tag <span className="text-gray-400">(Optional)</span>
-        </label>
-        <input
-          type="text"
-          name="tag"
-          value={inputFieldDetail.tag || ''}
-          onChange={handleInputChange}
-          placeholder="e.g. Most Popular, Best Value, Limited Time"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-        />
-      </div>
-
-      {/* SubTitle */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          SubTitle <span className="text-gray-400">(Optional)</span>
-        </label>
-        <input
-          type="text"
-          name="subTitle"
-          value={inputFieldDetail.subTitle || ''}
-          onChange={handleInputChange}
-          placeholder="e.g. Book this puja for peace and prosperity"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-        />
-      </div>
-
-      {/* Duration */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Duration <span className="text-gray-400">(Optional)</span>
-        </label>
-        <input
-          type="text"
-          name="duration"
-          value={inputFieldDetail.duration}
-          onChange={handleInputChange}
-          placeholder="e.g. 2-3 hours"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-        />
-      </div>
-
-      {/* Venue */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Venue <span className="text-gray-400">(Optional)</span>
-        </label>
-        <input
-          type="text"
-          name="pujaVenue"
-          value={inputFieldDetail.pujaVenue || ''}
-          onChange={handleInputChange}
-          placeholder="e.g. Temple Name or Location"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-        />
-      </div>
-
-      {/* ✅ NEW: Benefit Points */}
+      {/* ── Benefit Points ────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -539,7 +328,9 @@ const RitualsTab = ({
           <button
             type="button"
             onClick={() => {
-              const newId = benefitPoints.length > 0 ? Math.max(...benefitPoints.map(item => item.id || 0)) + 1 : 1;
+              const newId = benefitPoints.length > 0
+                ? Math.max(...benefitPoints.map(item => item.id || 0)) + 1
+                : 1;
               setBenefitPoints([...benefitPoints, { id: newId, title: '', description: '', icon: 'Star' }]);
             }}
             className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
@@ -554,11 +345,11 @@ const RitualsTab = ({
                 type="text"
                 value={item.icon}
                 onChange={(e) => {
-                  const newPoints = [...benefitPoints];
-                  newPoints[index].icon = e.target.value;
-                  setBenefitPoints(newPoints);
+                  const updated = [...benefitPoints];
+                  updated[index].icon = e.target.value;
+                  setBenefitPoints(updated);
                 }}
-                placeholder="Icon (e.g. Star)"
+                placeholder="Icon"
                 className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm"
               />
             </div>
@@ -567,9 +358,9 @@ const RitualsTab = ({
                 type="text"
                 value={item.title}
                 onChange={(e) => {
-                  const newPoints = [...benefitPoints];
-                  newPoints[index].title = e.target.value;
-                  setBenefitPoints(newPoints);
+                  const updated = [...benefitPoints];
+                  updated[index].title = e.target.value;
+                  setBenefitPoints(updated);
                 }}
                 placeholder="Title"
                 className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm mb-2"
@@ -577,9 +368,9 @@ const RitualsTab = ({
               <textarea
                 value={item.description}
                 onChange={(e) => {
-                  const newPoints = [...benefitPoints];
-                  newPoints[index].description = e.target.value;
-                  setBenefitPoints(newPoints);
+                  const updated = [...benefitPoints];
+                  updated[index].description = e.target.value;
+                  setBenefitPoints(updated);
                 }}
                 placeholder="Description"
                 rows={2}
@@ -588,11 +379,7 @@ const RitualsTab = ({
             </div>
             <button
               type="button"
-              onClick={() => {
-                if (benefitPoints.length > 1) {
-                  setBenefitPoints(benefitPoints.filter((_, i) => i !== index));
-                }
-              }}
+              onClick={() => benefitPoints.length > 1 && setBenefitPoints(benefitPoints.filter((_, i) => i !== index))}
               className="p-1 text-red-500 hover:text-red-700"
             >
               <Trash2 className="w-4 h-4" />
@@ -601,7 +388,7 @@ const RitualsTab = ({
         ))}
       </div>
 
-      {/* ✅ NEW: Vedic Procedure */}
+      {/* ── Vedic Procedure ───────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -610,7 +397,9 @@ const RitualsTab = ({
           <button
             type="button"
             onClick={() => {
-              const newId = vedicProcedure.length > 0 ? Math.max(...vedicProcedure.map(item => item.id || 0)) + 1 : 1;
+              const newId = vedicProcedure.length > 0
+                ? Math.max(...vedicProcedure.map(item => item.id || 0)) + 1
+                : 1;
               setVedicProcedure([...vedicProcedure, { id: newId, pointNumber: vedicProcedure.length + 1, title: '', description: '' }]);
             }}
             className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
@@ -625,9 +414,9 @@ const RitualsTab = ({
                 type="number"
                 value={item.pointNumber}
                 onChange={(e) => {
-                  const newVedic = [...vedicProcedure];
-                  newVedic[index].pointNumber = Number(e.target.value);
-                  setVedicProcedure(newVedic);
+                  const updated = [...vedicProcedure];
+                  updated[index].pointNumber = Number(e.target.value);
+                  setVedicProcedure(updated);
                 }}
                 placeholder="#"
                 className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm"
@@ -638,9 +427,9 @@ const RitualsTab = ({
                 type="text"
                 value={item.title}
                 onChange={(e) => {
-                  const newVedic = [...vedicProcedure];
-                  newVedic[index].title = e.target.value;
-                  setVedicProcedure(newVedic);
+                  const updated = [...vedicProcedure];
+                  updated[index].title = e.target.value;
+                  setVedicProcedure(updated);
                 }}
                 placeholder="Step Title"
                 className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm mb-2"
@@ -648,9 +437,9 @@ const RitualsTab = ({
               <textarea
                 value={item.description}
                 onChange={(e) => {
-                  const newVedic = [...vedicProcedure];
-                  newVedic[index].description = e.target.value;
-                  setVedicProcedure(newVedic);
+                  const updated = [...vedicProcedure];
+                  updated[index].description = e.target.value;
+                  setVedicProcedure(updated);
                 }}
                 placeholder="Step Description"
                 rows={2}
@@ -659,11 +448,7 @@ const RitualsTab = ({
             </div>
             <button
               type="button"
-              onClick={() => {
-                if (vedicProcedure.length > 1) {
-                  setVedicProcedure(vedicProcedure.filter((_, i) => i !== index));
-                }
-              }}
+              onClick={() => vedicProcedure.length > 1 && setVedicProcedure(vedicProcedure.filter((_, i) => i !== index))}
               className="p-1 text-red-500 hover:text-red-700"
             >
               <Trash2 className="w-4 h-4" />
@@ -672,7 +457,7 @@ const RitualsTab = ({
         ))}
       </div>
 
-      {/* ✅ NEW: Sacred Rituals */}
+      {/* ── Sacred Rituals ────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -681,7 +466,9 @@ const RitualsTab = ({
           <button
             type="button"
             onClick={() => {
-              const newId = sacredRituals.length > 0 ? Math.max(...sacredRituals.map(item => item.id || 0)) + 1 : 1;
+              const newId = sacredRituals.length > 0
+                ? Math.max(...sacredRituals.map(item => item.id || 0)) + 1
+                : 1;
               setSacredRituals([...sacredRituals, { id: newId, icon: '', title: '', description: '' }]);
             }}
             className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
@@ -696,11 +483,11 @@ const RitualsTab = ({
                 type="text"
                 value={item.icon}
                 onChange={(e) => {
-                  const newRituals = [...sacredRituals];
-                  newRituals[index].icon = e.target.value;
-                  setSacredRituals(newRituals);
+                  const updated = [...sacredRituals];
+                  updated[index].icon = e.target.value;
+                  setSacredRituals(updated);
                 }}
-                placeholder="Icon (e.g. Star)"
+                placeholder="Icon"
                 className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm"
               />
             </div>
@@ -709,9 +496,9 @@ const RitualsTab = ({
                 type="text"
                 value={item.title}
                 onChange={(e) => {
-                  const newRituals = [...sacredRituals];
-                  newRituals[index].title = e.target.value;
-                  setSacredRituals(newRituals);
+                  const updated = [...sacredRituals];
+                  updated[index].title = e.target.value;
+                  setSacredRituals(updated);
                 }}
                 placeholder="Ritual Title"
                 className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm mb-2"
@@ -719,9 +506,9 @@ const RitualsTab = ({
               <textarea
                 value={item.description}
                 onChange={(e) => {
-                  const newRituals = [...sacredRituals];
-                  newRituals[index].description = e.target.value;
-                  setSacredRituals(newRituals);
+                  const updated = [...sacredRituals];
+                  updated[index].description = e.target.value;
+                  setSacredRituals(updated);
                 }}
                 placeholder="Ritual Description"
                 rows={2}
@@ -730,11 +517,7 @@ const RitualsTab = ({
             </div>
             <button
               type="button"
-              onClick={() => {
-                if (sacredRituals.length > 1) {
-                  setSacredRituals(sacredRituals.filter((_, i) => i !== index));
-                }
-              }}
+              onClick={() => sacredRituals.length > 1 && setSacredRituals(sacredRituals.filter((_, i) => i !== index))}
               className="p-1 text-red-500 hover:text-red-700"
             >
               <Trash2 className="w-4 h-4" />
@@ -743,7 +526,7 @@ const RitualsTab = ({
         ))}
       </div>
 
-      {/* ✅ NEW: Aashirwad Box */}
+      {/* ── Aashirwad Box ─────────────────────────────────── */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -763,20 +546,16 @@ const RitualsTab = ({
               type="text"
               value={msg}
               onChange={(e) => {
-                const newBox = [...aashirwadBox];
-                newBox[index] = e.target.value;
-                setAashirwadBox(newBox);
+                const updated = [...aashirwadBox];
+                updated[index] = e.target.value;
+                setAashirwadBox(updated);
               }}
               placeholder="Enter Aashirwad message"
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
             />
             <button
               type="button"
-              onClick={() => {
-                if (aashirwadBox.length > 1) {
-                  setAashirwadBox(aashirwadBox.filter((_, i) => i !== index));
-                }
-              }}
+              onClick={() => aashirwadBox.length > 1 && setAashirwadBox(aashirwadBox.filter((_, i) => i !== index))}
               className="p-2 text-red-500 hover:text-red-700"
             >
               <Trash2 className="w-4 h-4" />
@@ -784,6 +563,7 @@ const RitualsTab = ({
           </div>
         ))}
       </div>
+
     </div>
   );
 };

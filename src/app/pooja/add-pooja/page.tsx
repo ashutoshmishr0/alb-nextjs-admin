@@ -482,6 +482,16 @@ const [vedicProcedure, setVedicProcedure] = useState([
             });
             setMobileImagePreview(`${process.env.NEXT_PUBLIC_IMAGE_URL3}${imgUrl}`);
           }
+
+          if (pujaData.laptopImage) {
+            const imgUrl = pujaData.laptopImage;
+            setLaptopImage({
+              file: imgUrl,
+              bytes: null,
+              url: `${process.env.NEXT_PUBLIC_IMAGE_URL3}${imgUrl}`
+            });
+            setLaptopImagePreview(`${process.env.NEXT_PUBLIC_IMAGE_URL3}${imgUrl}`);
+          }
         }
       }
 
@@ -859,8 +869,10 @@ formData.append("aashirwadBox", JSON.stringify(
       mobileImagePreview,
       handleMobileImageUpload,
       handleMainImageUpload,
+      desktopImagePreview: laptopImagePreview,
+      handleDesktopImageUpload: handleLaptopImageUpload,
+      desktopImage: laptopImage,
     };
-console.log("imaggggggggggggggggggggggggggggggggg", props.image.file)
     switch (activeTab) {
       case 0:
         return <BasicInfoTab {...props} />;
