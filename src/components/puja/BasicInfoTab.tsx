@@ -36,11 +36,11 @@ interface Props {
 
 // ── Crop helpers ──────────────────────────────────────────────
 const MAIN_ASPECT = 1536 / 1024;
-const MOBILE_ASPECT = 300 / 300;
-const DESKTOP_ASPECT = 1920 / 750;
+const MOBILE_ASPECT = 360 / 270;
+const DESKTOP_ASPECT = 1280 / 500;
 const MAIN_OUTPUT = { w: 1536, h: 1024 };
-const MOBILE_OUTPUT = { w: 300, h: 300 };
-const DESKTOP_OUTPUT = { w: 1920, h: 750 };
+const MOBILE_OUTPUT = { w: 360, h: 270 };
+const DESKTOP_OUTPUT = { w: 1280, h: 500 };
 
 type ImageType = 'main' | 'mobile' | 'desktop';
 
@@ -334,8 +334,8 @@ const BasicInfoTab: React.FC<Props> = ({
   // ── Crop modal config by type ──
   const cropConfig = {
     main:    { aspect: MAIN_ASPECT,    outputW: MAIN_OUTPUT.w,    outputH: MAIN_OUTPUT.h,    label: 'Main Image (Landscape 1536×1024)' },
-    mobile:  { aspect: MOBILE_ASPECT,  outputW: MOBILE_OUTPUT.w,  outputH: MOBILE_OUTPUT.h,  label: 'Mobile Image (Square 300×300)' },
-    desktop: { aspect: DESKTOP_ASPECT, outputW: DESKTOP_OUTPUT.w, outputH: DESKTOP_OUTPUT.h, label: 'Desktop Image (Wide Banner 1920×750)' },
+      mobile:  { aspect: 360/270,        outputW: 360,              outputH: 270,              label: 'Mobile Image (360×270px)' },
+    desktop: { aspect: 1280/500,       outputW: 1280,             outputH: 500,              label: 'Laptop Image (1280×500px)' },
   };
 
   return (
@@ -373,7 +373,7 @@ const BasicInfoTab: React.FC<Props> = ({
             label="Mobile Image"
             required={!editId}
             previewSrc={mobilePreviewSrc}
-            hint="Square · 300×300px · JPG/PNG · max 5MB"
+            hint="Square · 360×270px · JPG/PNG · max 5MB"
             error={fieldErrors['mobileImage']}
             onClick={() => openFilePicker('mobile')}
             aspectLabel="Portrait square"
@@ -381,7 +381,7 @@ const BasicInfoTab: React.FC<Props> = ({
           <UploadBox
             label="Desktop Image"
             previewSrc={desktopPreviewSrc}
-            hint="Wide Banner · 1920×750px · JPG/PNG · max 5MB"
+            hint="Wide Banner · 1280×500px · JPG/PNG · max 5MB"
             error={fieldErrors['desktopImage']}
             onClick={() => openFilePicker('desktop')}
             aspectLabel="Wide banner"
