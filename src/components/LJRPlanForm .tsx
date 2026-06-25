@@ -8,10 +8,12 @@ import Swal from 'sweetalert2';
 interface FormState {
   planId: string;
   title: string;
+  shortTitle: string;
   priceOriginal: number | '';
   priceFinal: number | '';
   sortOrder: number | '';
   isActive: boolean;
+  isPopular: boolean;
   addons: {
     astroConsultation: {
       enabled: boolean;
@@ -31,10 +33,12 @@ interface FormState {
 const defaultForm: FormState = {
   planId: '',
   title: '',
+  shortTitle: '',
   priceOriginal: '',
   priceFinal: '',
   sortOrder: '',
   isActive: true,
+  isPopular: false,
   addons: {
     astroConsultation: {
       enabled: false,
@@ -61,26 +65,24 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Edit mode — fetch existing plan
   useEffect(() => {
     if (!isEdit || !planId) return;
     const fetchPlan = async () => {
       try {
         setLoading(true);
-        const res = await fetch(
-          `/api/admin/plans`,
-          { credentials: 'include' }
-        );
+        const res = await fetch(`/api/admin/plans`, { credentials: 'include' });
         const data = await res.json();
         const plan = data.plans?.find((p: any) => p.planId === planId);
         if (plan) {
           setForm({
             planId: plan.planId,
             title: plan.title,
+            shortTitle: plan.shortTitle || '',
             priceOriginal: plan.priceOriginal,
             priceFinal: plan.priceFinal,
             sortOrder: plan.sortOrder,
             isActive: plan.isActive,
+            isPopular: plan.isPopular || false,
             addons: {
               astroConsultation: {
                 enabled: plan.addons.astroConsultation.enabled,
@@ -108,7 +110,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.planId.trim()) newErrors.planId = 'Plan ID is required';
+    if (!isEdit && !form.planId.trim()) newErrors.planId = 'Plan ID is required';
     if (!form.title.trim()) newErrors.title = 'Title is required';
     if (form.priceOriginal === '' || Number(form.priceOriginal) <= 0)
       newErrors.priceOriginal = 'Original price is required';
@@ -134,54 +136,34 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
     setSaving(true);
     try {
-      const url = isEdit
-        ? `/api/admin/plans/${planId}`
-        : `/api/admin/plans`;
-
+      const url = isEdit ? `/api/admin/plans/${planId}` : `/api/admin/plans`;
       const method = isEdit ? 'PUT' : 'POST';
 
-      const body = isEdit
-        ? {
-          priceOriginal: Number(form.priceOriginal),
-          priceFinal: Number(form.priceFinal),
-          isActive: form.isActive,
-          addons: {
-            astroConsultation: {
-              enabled: form.addons.astroConsultation.enabled,
-              price: Number(form.addons.astroConsultation.price),
-              priceOriginal: Number(form.addons.astroConsultation.priceOriginal),
-              label: form.addons.astroConsultation.label,
-            },
-            expressDelivery: {
-              enabled: form.addons.expressDelivery.enabled,
-              price: Number(form.addons.expressDelivery.price),
-              label: form.addons.expressDelivery.label,
-            },
+      const sharedFields = {
+        title: form.title,
+        shortTitle: form.shortTitle || null,
+        priceOriginal: Number(form.priceOriginal),
+        priceFinal: Number(form.priceFinal),
+        sortOrder: Number(form.sortOrder) || 0,
+        isActive: form.isActive,
+        isPopular: form.isPopular,
+        features: form.features,
+        addons: {
+          astroConsultation: {
+            enabled: form.addons.astroConsultation.enabled,
+            price: Number(form.addons.astroConsultation.price),
+            priceOriginal: Number(form.addons.astroConsultation.priceOriginal),
+            label: form.addons.astroConsultation.label,
           },
-            features: form.features,
-        }
-        : {
-          planId: form.planId,
-          title: form.title,
-          priceOriginal: Number(form.priceOriginal),
-          priceFinal: Number(form.priceFinal),
-          sortOrder: Number(form.sortOrder) || 0,
-          isActive: form.isActive,
-          addons: {
-            astroConsultation: {
-              enabled: form.addons.astroConsultation.enabled,
-              price: Number(form.addons.astroConsultation.price),
-              priceOriginal: Number(form.addons.astroConsultation.priceOriginal),
-              label: form.addons.astroConsultation.label,
-            },
-            expressDelivery: {
-              enabled: form.addons.expressDelivery.enabled,
-              price: Number(form.addons.expressDelivery.price),
-              label: form.addons.expressDelivery.label,
-            },
+          expressDelivery: {
+            enabled: form.addons.expressDelivery.enabled,
+            price: Number(form.addons.expressDelivery.price),
+            label: form.addons.expressDelivery.label,
           },
-            features: form.features,
-        };
+        },
+      };
+
+      const body = isEdit ? sharedFields : { planId: form.planId, ...sharedFields };
 
       const res = await fetch(url, {
         method,
@@ -193,11 +175,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       const data = await res.json();
 
       if (data.success) {
-        await Swal.fire(
-          'Saved!',
-          isEdit ? 'Plan updated successfully.' : 'Plan created successfully.',
-          'success'
-        );
+        await Swal.fire('Saved!', isEdit ? 'Plan updated successfully.' : 'Plan created successfully.', 'success');
         router.push('/manage-report-pricing');
       } else {
         Swal.fire('Error', data.message || 'Something went wrong.', 'error');
@@ -233,7 +211,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             {isEdit ? 'Edit Plan' : 'Add New Plan'}
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {isEdit ? 'Update pricing and add-on settings' : 'Create a new report plan'}
+            {isEdit ? 'Update plan details, pricing and add-on settings' : 'Create a new report plan'}
           </p>
         </div>
       </div>
@@ -245,72 +223,79 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           <h2 className="font-semibold text-gray-800 mb-4">Basic Info</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            {/* Plan ID — only in add mode */}
-            {!isEdit && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Plan ID <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.planId}
-                  onChange={(e) => setForm(prev => ({ ...prev, planId: e.target.value }))}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.planId ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  placeholder="e.g. journey-report"
-                />
-                {errors.planId && <p className="text-red-500 text-xs mt-1">{errors.planId}</p>}
-              </div>
-            )}
+            {/* Plan ID */}
+            <div className={isEdit ? 'md:col-span-2' : ''}>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Plan ID {!isEdit && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type="text"
+                value={form.planId}
+                disabled={isEdit}
+                onChange={(e) => !isEdit && setForm(prev => ({ ...prev, planId: e.target.value }))}
+                className={`w-full px-4 py-2.5 border rounded-lg text-sm outline-none ${
+                  isEdit
+                    ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
+                    : errors.planId
+                    ? 'border-red-500 focus:ring-2 focus:ring-red-500'
+                    : 'border-gray-300 focus:ring-2 focus:ring-red-500'
+                }`}
+                placeholder="e.g. journey-report"
+              />
+              {isEdit && <p className="text-xs text-gray-400 mt-1">Plan ID cannot be changed</p>}
+              {errors.planId && <p className="text-red-500 text-xs mt-1">{errors.planId}</p>}
+            </div>
 
-            {!isEdit && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Title <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.title ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  placeholder="e.g. Life Journey Report"
-                />
-                {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
-              </div>
-            )}
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                  errors.title ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="e.g. Life Journey Report"
+              />
+              {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+            </div>
 
-            {!isEdit && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Sort Order
-                </label>
-                <input
-                  type="number"
-                  value={form.sortOrder}
-                  onWheel={(e) => e.currentTarget.blur()}
-                  onChange={(e) => setForm(prev => ({ ...prev, sortOrder: e.target.value === '' ? '' : Number(e.target.value) }))}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
-                  placeholder="1"
-                  min="0"
-                />
-              </div>
-            )}
+            {/* Short Title */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Short Title
+                <span className="text-xs text-gray-400 ml-1 font-normal">(mobile pill tab)</span>
+              </label>
+              <input
+                type="text"
+                value={form.shortTitle}
+                onChange={(e) => setForm(prev => ({ ...prev, shortTitle: e.target.value }))}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
+                placeholder="e.g. Report + Consult"
+              />
+              <p className="text-xs text-gray-400 mt-1">Shown in mobile tabs instead of full title</p>
+            </div>
 
-            {isEdit && (
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Plan ID
-                </label>
-                <input
-                  type="text"
-                  value={form.planId}
-                  disabled
-                  className="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500 cursor-not-allowed"
-                />
-                <p className="text-xs text-gray-400 mt-1">Plan ID cannot be changed</p>
-              </div>
-            )}
+            {/* Sort Order */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Sort Order</label>
+              <input
+                type="number"
+                value={form.sortOrder}
+                onWheel={(e) => e.currentTarget.blur()}
+                onChange={(e) => setForm(prev => ({
+                  ...prev,
+                  sortOrder: e.target.value === '' ? '' : Number(e.target.value),
+                }))}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
+                placeholder="1"
+                min="0"
+              />
+            </div>
+
           </div>
         </div>
 
@@ -328,16 +313,15 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 onWheel={(e) => e.currentTarget.blur()}
                 onChange={(e) => setForm(prev => ({
                   ...prev,
-                  priceOriginal: e.target.value === '' ? '' : Number(e.target.value)
+                  priceOriginal: e.target.value === '' ? '' : Number(e.target.value),
                 }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.priceOriginal ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                  errors.priceOriginal ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="e.g. 1996"
                 min="0"
               />
-              {errors.priceOriginal && (
-                <p className="text-red-500 text-xs mt-1">{errors.priceOriginal}</p>
-              )}
+              {errors.priceOriginal && <p className="text-red-500 text-xs mt-1">{errors.priceOriginal}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -349,20 +333,19 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 onWheel={(e) => e.currentTarget.blur()}
                 onChange={(e) => setForm(prev => ({
                   ...prev,
-                  priceFinal: e.target.value === '' ? '' : Number(e.target.value)
+                  priceFinal: e.target.value === '' ? '' : Number(e.target.value),
                 }))}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.priceFinal ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                  errors.priceFinal ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="e.g. 996"
                 min="0"
               />
-              {errors.priceFinal && (
-                <p className="text-red-500 text-xs mt-1">{errors.priceFinal}</p>
-              )}
+              {errors.priceFinal && <p className="text-red-500 text-xs mt-1">{errors.priceFinal}</p>}
             </div>
           </div>
 
-          {/* Preview */}
+          {/* Price Preview */}
           {form.priceOriginal !== '' && form.priceFinal !== '' && (
             <div className="mt-3 p-3 bg-gray-50 rounded-lg flex items-center gap-3">
               <span className="text-gray-400 line-through text-sm">
@@ -379,53 +362,53 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
         </div>
 
         {/* Features */}
-<div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-  <div className="flex items-center justify-between mb-4">
-    <h2 className="font-semibold text-gray-800">Features (What's Included)</h2>
-    <button
-      type="button"
-      onClick={() => setForm(prev => ({ ...prev, features: [...prev.features, ''] }))}
-      className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
-    >
-      + Add Feature
-    </button>
-  </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-800">Features (What's Included)</h2>
+            <button
+              type="button"
+              onClick={() => setForm(prev => ({ ...prev, features: [...prev.features, ''] }))}
+              className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+            >
+              + Add Feature
+            </button>
+          </div>
 
-  {form.features.length === 0 && (
-    <p className="text-xs text-gray-400 text-center py-4">
-      No features added yet. Click "+ Add Feature" to begin.
-    </p>
-  )}
+          {form.features.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-4">
+              No features added yet. Click "+ Add Feature" to begin.
+            </p>
+          )}
 
-        <div className="space-y-2">
-          {form.features.map((feature, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="text-xs text-gray-400 w-5 shrink-0">{i + 1}.</span>
-              <input
-                type="text"
-                value={feature}
-                onChange={(e) => {
-                  const updated = [...form.features];
-                  updated[i] = e.target.value;
-                  setForm(prev => ({ ...prev, features: updated }));
-                }}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
-                placeholder={`Feature ${i + 1}`}
-              />
-              <button
-                type="button"
-                onClick={() => setForm(prev => ({
-                  ...prev,
-                  features: prev.features.filter((_, idx) => idx !== i)
-                }))}
-                className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+          <div className="space-y-2">
+            {form.features.map((feature, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 w-5 shrink-0">{i + 1}.</span>
+                <input
+                  type="text"
+                  value={feature}
+                  onChange={(e) => {
+                    const updated = [...form.features];
+                    updated[i] = e.target.value;
+                    setForm(prev => ({ ...prev, features: updated }));
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm"
+                  placeholder={`Feature ${i + 1}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setForm(prev => ({
+                    ...prev,
+                    features: prev.features.filter((_, idx) => idx !== i),
+                  }))}
+                  className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
         {/* Add-ons */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
@@ -433,16 +416,14 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           <div className="space-y-4">
 
             {/* Astro Consultation */}
-            <div className={`border-2 rounded-xl p-4 transition-all ${form.addons.astroConsultation.enabled
-              ? 'border-green-300 bg-green-50'
-              : 'border-gray-200 bg-gray-50'
-              }`}>
+            <div className={`border-2 rounded-xl p-4 transition-all ${
+              form.addons.astroConsultation.enabled ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'
+            }`}>
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="font-medium text-gray-800 text-sm">Astro Consultation</p>
                   <p className="text-xs text-gray-500">Enable for 1-on-1 consultation add-on</p>
                 </div>
-                {/* Toggle Switch */}
                 <button
                   type="button"
                   onClick={() => setForm(prev => ({
@@ -451,15 +432,17 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       ...prev.addons,
                       astroConsultation: {
                         ...prev.addons.astroConsultation,
-                        enabled: !prev.addons.astroConsultation.enabled
-                      }
-                    }
+                        enabled: !prev.addons.astroConsultation.enabled,
+                      },
+                    },
                   }))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.addons.astroConsultation.enabled ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    form.addons.astroConsultation.enabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.addons.astroConsultation.enabled ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    form.addons.astroConsultation.enabled ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
                 </button>
               </div>
 
@@ -479,18 +462,17 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                           ...prev.addons,
                           astroConsultation: {
                             ...prev.addons.astroConsultation,
-                            priceOriginal: e.target.value === '' ? '' : Number(e.target.value)
-                          }
-                        }
+                            priceOriginal: e.target.value === '' ? '' : Number(e.target.value),
+                          },
+                        },
                       }))}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.astroPriceOriginal ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                        errors.astroPriceOriginal ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="e.g. 5100"
                       min="0"
                     />
-                    {errors.astroPriceOriginal && (
-                      <p className="text-red-500 text-xs mt-1">{errors.astroPriceOriginal}</p>
-                    )}
+                    {errors.astroPriceOriginal && <p className="text-red-500 text-xs mt-1">{errors.astroPriceOriginal}</p>}
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1.5">
@@ -506,34 +488,31 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                           ...prev.addons,
                           astroConsultation: {
                             ...prev.addons.astroConsultation,
-                            price: e.target.value === '' ? '' : Number(e.target.value)
-                          }
-                        }
+                            price: e.target.value === '' ? '' : Number(e.target.value),
+                          },
+                        },
                       }))}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.astroPrice ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                        errors.astroPrice ? 'border-red-500' : 'border-gray-300'
+                      }`}
                       placeholder="e.g. 904"
                       min="0"
                     />
-                    {errors.astroPrice && (
-                      <p className="text-red-500 text-xs mt-1">{errors.astroPrice}</p>
-                    )}
+                    {errors.astroPrice && <p className="text-red-500 text-xs mt-1">{errors.astroPrice}</p>}
                   </div>
                 </div>
               )}
             </div>
 
             {/* Express Delivery */}
-            <div className={`border-2 rounded-xl p-4 transition-all ${form.addons.expressDelivery.enabled
-              ? 'border-green-300 bg-green-50'
-              : 'border-gray-200 bg-gray-50'
-              }`}>
+            <div className={`border-2 rounded-xl p-4 transition-all ${
+              form.addons.expressDelivery.enabled ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'
+            }`}>
               <div className="flex items-center justify-between mb-1">
                 <div>
                   <p className="font-medium text-gray-800 text-sm">Express Delivery</p>
                   <p className="text-xs text-gray-500">Enable for priority delivery add-on</p>
                 </div>
-                {/* Toggle Switch */}
                 <button
                   type="button"
                   onClick={() => setForm(prev => ({
@@ -542,15 +521,17 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                       ...prev.addons,
                       expressDelivery: {
                         ...prev.addons.expressDelivery,
-                        enabled: !prev.addons.expressDelivery.enabled
-                      }
-                    }
+                        enabled: !prev.addons.expressDelivery.enabled,
+                      },
+                    },
                   }))}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.addons.expressDelivery.enabled ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    form.addons.expressDelivery.enabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.addons.expressDelivery.enabled ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    form.addons.expressDelivery.enabled ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
                 </button>
               </div>
 
@@ -569,42 +550,70 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                         ...prev.addons,
                         expressDelivery: {
                           ...prev.addons.expressDelivery,
-                          price: e.target.value === '' ? '' : Number(e.target.value)
-                        }
-                      }
+                          price: e.target.value === '' ? '' : Number(e.target.value),
+                        },
+                      },
                     }))}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${errors.expressPrice ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm ${
+                      errors.expressPrice ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="e.g. 149"
                     min="0"
                   />
-                  {errors.expressPrice && (
-                    <p className="text-red-500 text-xs mt-1">{errors.expressPrice}</p>
-                  )}
+                  {errors.expressPrice && <p className="text-red-500 text-xs mt-1">{errors.expressPrice}</p>}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Active Toggle */}
+        {/* Plan Settings — Popular + Status */}
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-gray-800 text-sm">Plan Status</p>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {form.isActive ? 'Plan is visible to users' : 'Plan is hidden from users'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setForm(prev => ({ ...prev, isActive: !prev.isActive }))}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isActive ? 'bg-green-500' : 'bg-gray-300'
+          <h2 className="font-semibold text-gray-800 mb-4">Plan Settings</h2>
+          <div className="space-y-4">
+
+            {/* Is Popular */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-gray-800 text-sm">Mark as Most Popular</p>
+                <p className="text-xs text-gray-500 mt-0.5">Shows "Most Popular" badge on this plan card</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, isPopular: !prev.isPopular }))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  form.isPopular ? 'bg-yellow-400' : 'bg-gray-300'
                 }`}
-            >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${form.isActive ? 'translate-x-6' : 'translate-x-1'
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  form.isPopular ? 'translate-x-6' : 'translate-x-1'
                 }`} />
-            </button>
+              </button>
+            </div>
+
+            <div className="border-t border-gray-100" />
+
+            {/* Is Active */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-gray-800 text-sm">Plan Status</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {form.isActive ? 'Plan is visible to users' : 'Plan is hidden from users'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, isActive: !prev.isActive }))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  form.isActive ? 'bg-green-500' : 'bg-gray-300'
+                }`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  form.isActive ? 'translate-x-6' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+
           </div>
         </div>
 
@@ -628,6 +637,7 @@ const LJRPlanForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             }
           </button>
         </div>
+
       </form>
     </div>
   );
