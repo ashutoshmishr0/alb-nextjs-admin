@@ -38,6 +38,9 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
       ? String(initialData.original_price)
       : ''
   );
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [editingPriceValue, setEditingPriceValue] = useState<string>('');
+  const [savingEdit, setSavingEdit] = useState(false);
   const [existingPrices, setExistingPrices] = useState<ConsultationPrice[]>([]);
   const [newPrice, setNewPrice] = useState<{ durationId: string; price: string }>({
     durationId: '',
@@ -96,6 +99,51 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
     );
     setSpecialPricingRates(rates);
   };
+
+  const handleEditPrice = (price: ConsultationPrice) => {
+  setEditingPriceId(price.duration);
+  setEditingPriceValue(String(price.price));
+};
+
+const handleSaveEditPrice = async (durationId: string) => {
+  if (!editingPriceValue || Number(editingPriceValue) <= 0) {
+    toast.error('Please enter a valid price');
+    return;
+  }
+
+  setSavingEdit(true);
+  try {
+    const response = await fetch(`/api/admin/consultation-price`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        astrologerId,
+        durationId,
+        price: Number(editingPriceValue)
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      toast.success('Price updated successfully');
+      setEditingPriceId(null);
+      setEditingPriceValue('');
+      onUpdate();
+    } else {
+      toast.error(data.message || 'Failed to update price');
+    }
+  } catch (error) {
+    toast.error('Network error occurred');
+  } finally {
+    setSavingEdit(false);
+  }
+};
+
+const handleCancelEdit = () => {
+  setEditingPriceId(null);
+  setEditingPriceValue('');
+};
 
   // -------------------- helpers --------------------
   const getSlotDuration = (durationId: string | undefined): SlotDuration | undefined => {
@@ -624,33 +672,83 @@ export default function Consultations({ astrologerId, initialData, onUpdate }: C
                 <div className="mb-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {existingPrices.map((price) => {
-                      const slot = getSlotDuration(price.duration);
-                      return (
-                        <div
-                          key={price._id || price.duration}
-                          className="flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-gray-900 text-sm">
-                                {slot?.slotDuration}min
-                              </span>
-                              <span className="text-gray-400">•</span>
-                              <span className="font-bold text-red-600 text-sm">₹{price.price}</span>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePrice(price.duration)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      );
-                    })}
+  const slot = getSlotDuration(price.duration);
+  const isEditing = editingPriceId === price.duration;
+
+  return (
+    <div
+      key={price._id || price.duration}
+      className="flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-200"
+    >
+      <div className="flex items-center gap-2 flex-1">
+        <Clock className="w-4 h-4 text-gray-500 flex-shrink-0" />
+        <span className="font-semibold text-gray-900 text-sm">
+          {slot?.slotDuration}min
+        </span>
+        <span className="text-gray-400">•</span>
+
+        {isEditing ? (
+          <input
+            type="number"
+            value={editingPriceValue}
+            onChange={(e) => setEditingPriceValue(e.target.value)}
+            min="0"
+            autoFocus
+            className="w-28 px-2 py-1 border border-red-400 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-bold text-red-600"
+          />
+        ) : (
+          <span className="font-bold text-red-600 text-sm">₹{price.price}</span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1">
+        {isEditing ? (
+          <>
+            <button
+              type="button"
+              onClick={() => handleSaveEditPrice(price.duration)}
+              disabled={savingEdit}
+              className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors disabled:opacity-50"
+              title="Save"
+            >
+              {savingEdit
+                ? <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                : <Check className="w-5 h-5" />
+              }
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="p-1 text-gray-500 hover:bg-gray-100 rounded transition-colors"
+              title="Cancel"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => handleEditPrice(price)}
+              className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              title="Edit"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDeletePrice(price.duration)}
+              className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+})}
                   </div>
                 </div>
               )}
