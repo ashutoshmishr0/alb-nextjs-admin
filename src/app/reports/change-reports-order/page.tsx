@@ -20,6 +20,7 @@ interface Report {
   price: number;
   cutPrice: number;
   rating: number;
+  showOnMobile: boolean;
   reviews: number;
   featured: boolean;
   bestseller: boolean;
@@ -283,6 +284,45 @@ export default function ReportsAdmin() {
     }
   };
 
+  const handleToggleMobile = async (report: Report) => {
+  const newStatus = !report.showOnMobile;
+
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: `This report will ${newStatus ? 'appear' : 'be hidden'} on mobile`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: newStatus ? '#22C55E' : '#EF4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: `Yes, ${newStatus ? 'show' : 'hide'} on mobile!`,
+  });
+
+  if (!result.isConfirmed) return;
+
+  Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  try {
+    const response = await fetch(`/api/admin/${report._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ showOnMobile: newStatus }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      setReports(prev =>
+        prev.map(r => r._id === report._id ? { ...r, showOnMobile: newStatus } : r)
+      );
+      Swal.fire({ icon: 'success', title: 'Updated!', timer: 1500, showConfirmButton: false });
+    } else {
+      throw new Error(data.message || 'Failed to update');
+    }
+  } catch (error: any) {
+    Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+  }
+};
+
   // Update Section Priority
   const handleUpdateSection = async (report: Report, newSection: Report['sectionPriority']) => {
     try {
@@ -413,29 +453,6 @@ export default function ReportsAdmin() {
       ),
       width: "120px"
     },
-    // {
-    //   name: "Tags",
-    //   cell: (row: Report) => (
-    //     <div className="flex gap-1 flex-wrap">
-    //       {row.bestseller && (
-    //         <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-    //           Bestseller
-    //         </span>
-    //       )}
-    //       {row.newlyLaunched && (
-    //         <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
-    //           New
-    //         </span>
-    //       )}
-    //       {row.featured && (
-    //         <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full">
-    //           Featured
-    //         </span>
-    //       )}
-    //     </div>
-    //   ),
-    //   width: "130px"
-    // },
     {
       name: "Status",
       selector: (row: Report) => (
@@ -449,21 +466,27 @@ export default function ReportsAdmin() {
       width: "100px",
     },
     {
+      name: "Mobile",
+      cell: (row: Report) => (
+        <div
+          className="cursor-pointer flex justify-center"
+          onClick={() => handleToggleMobile(row)}
+        >
+          {row.showOnMobile ? <SwitchOnSvg /> : <SwitchOffSvg />}
+        </div>
+      ),
+      width: "100px",
+    },
+    {
       name: 'Action',
       cell: (row: Report) => (
         <div className="flex gap-3 justify-center items-center">
-          {/* <div
-            onClick={() => router.push(`/reports/view-report?id=${row._id}`)}
-            className="cursor-pointer hover:text-blue-600 transition-colors"
-          >
-            <ViewSvg />
-          </div> */}
-          {/* <div
+          <div
             onClick={() => router.push(`/reports/change-reports-order/edit-report?id=${row._id}`)}
             className="cursor-pointer hover:text-green-600 transition-colors"
           >
             <EditSvg />
-          </div> */}
+          </div>
           <div
             onClick={() => handleDeleteReport(row)}
             className="cursor-pointer hover:text-red-600 transition-colors"

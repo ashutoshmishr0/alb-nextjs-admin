@@ -16,6 +16,7 @@ interface ReportFormData {
   rating: number;
   reviews: number;
   featured: boolean;
+  showOnMobile: boolean;
   bestseller: boolean;
   tag: string;
   newlyLaunched: boolean;
@@ -42,6 +43,7 @@ export default function AddEditReport() {
     reviews: 0,
     featured: false,
     bestseller: false,
+    showOnMobile: false,
     tag: '',
     newlyLaunched: false,
     description: '',
@@ -357,7 +359,7 @@ export default function AddEditReport() {
           </div>
 
           {/* Tags */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -367,6 +369,17 @@ export default function AddEditReport() {
                 className="w-4 h-4 text-red-600"
               />
               <span className="text-sm text-gray-700">Featured Report</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="showOnMobile"
+                checked={formData.showOnMobile}
+                onChange={handleChange}
+                className="w-4 h-4 text-red-600"
+              />
+              <span className="text-sm text-gray-700">Show on Mobile</span>
             </label>
             
             <label className="flex items-center gap-2">
