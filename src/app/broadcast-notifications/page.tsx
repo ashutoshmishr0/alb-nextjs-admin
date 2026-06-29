@@ -2,7 +2,14 @@
 import React, { useState, Suspense, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import ReactCrop, {
+  centerCrop,
+  makeAspectCrop,
+  type Crop,
+  type PixelCrop,
+} from 'react-image-crop';
 
+// ── Screens ───────────────────────────────────────────────────────────────────
 const SCREENS = [
   { label: "Home", value: "" },
   { label: "Gemstones", value: "pages/gemstones" },
@@ -15,28 +22,148 @@ const SCREENS = [
   { label: "About Us", value: "pages/about-us" },
 ];
 
-const IMAGE_CONFIG = {
-  maxSizeMB: 2,
-  label: "1024 × 512 px recommended (2:1 ratio)",
+const IMAGE_CONFIG = { maxSizeMB: 2 };
+
+// ── Crop helpers ──────────────────────────────────────────────────────────────
+const NOTIF_ASPECT = 2 / 1;
+const NOTIF_OUTPUT = { w: 1024, h: 512 };
+
+function makeCenteredCrop(mediaW: number, mediaH: number, aspect: number): Crop {
+  return centerCrop(
+    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaW, mediaH),
+    mediaW, mediaH
+  );
+}
+
+async function getCroppedFile(
+  imgEl: HTMLImageElement,
+  pixelCrop: PixelCrop,
+  outputW: number,
+  outputH: number,
+  fileName: string
+): Promise<File | null> {
+  const canvas = document.createElement('canvas');
+  canvas.width = outputW;
+  canvas.height = outputH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const scaleX = imgEl.naturalWidth / imgEl.width;
+  const scaleY = imgEl.naturalHeight / imgEl.height;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(
+    imgEl,
+    pixelCrop.x * scaleX, pixelCrop.y * scaleY,
+    pixelCrop.width * scaleX, pixelCrop.height * scaleY,
+    0, 0, outputW, outputH
+  );
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob ? new File([blob], fileName, { type: 'image/jpeg' }) : null),
+      'image/jpeg', 0.92
+    );
+  });
+}
+
+// ── Crop Modal ────────────────────────────────────────────────────────────────
+interface CropModalProps {
+  imgSrc: string;
+  onConfirm: (file: File) => void;
+  onCancel: () => void;
+}
+
+const CropModal: React.FC<CropModalProps> = ({ imgSrc, onConfirm, onCancel }) => {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    setCrop(makeCenteredCrop(width, height, NOTIF_ASPECT));
+  };
+
+  const handleConfirm = async () => {
+    if (!imgRef.current || !completedCrop || completedCrop.width === 0) return;
+    const file = await getCroppedFile(
+      imgRef.current, completedCrop,
+      NOTIF_OUTPUT.w, NOTIF_OUTPUT.h,
+      `notif-${Date.now()}.jpg`
+    );
+    if (file) onConfirm(file);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-800">Crop Image</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Notification banner · 2:1 ratio (1024×512px)</p>
+          </div>
+          <button type="button" onClick={onCancel} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="flex justify-center max-h-[55vh] overflow-auto rounded-lg bg-gray-50 border border-gray-200">
+          <ReactCrop
+            crop={crop}
+            onChange={(_, pct) => setCrop(pct)}
+            onComplete={(c) => setCompletedCrop(c)}
+            aspect={NOTIF_ASPECT}
+            keepSelection
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef}
+              src={imgSrc}
+              alt="Crop source"
+              onLoad={onImageLoad}
+              style={{ maxHeight: '55vh' }}
+            />
+          </ReactCrop>
+        </div>
+        <div className="flex gap-3 mt-5">
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+          >
+            Crop &amp; Use
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface FormState {
   title: string;
   body: string;
   screen: string;
   imageUrl: string;
   scheduleType: "now" | "later";
-  scheduleHours: string;
-  rolloutPercent: number;
+  scheduledAt: string;
+  targetType: "all" | "selected";
 }
 
 interface FormErrors {
   title?: string;
   body?: string;
   imageUrl?: string;
-  scheduleHours?: string;
+  scheduledAt?: string;
+  deviceIds?: string;
 }
 
+// ── Main Component ────────────────────────────────────────────────────────────
 function BroadcastNotificationContent() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,104 +174,145 @@ function BroadcastNotificationContent() {
     screen: "",
     imageUrl: "",
     scheduleType: "now",
-    scheduleHours: "",
-    rolloutPercent: 100,
+    scheduledAt: "",
+    targetType: "all",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imagePreview, setImagePreview] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [cropSrc, setCropSrc] = useState("");
 
-  const handleChange = (field: keyof FormState, value: string | number) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+  // Device targeting
+  const [deviceIds, setDeviceIds] = useState<string[]>([]);
+  const [deviceInput, setDeviceInput] = useState("");
+  const [totalDevices, setTotalDevices] = useState<number | null>(null);
+
+  // Fetch total device count on mount
+  React.useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/shopify/notify/device-count`)
+      .then(r => r.json())
+      .then(d => { if (d.success) setTotalDevices(d.count); })
+      .catch(() => {});
+  }, []);
+
+  const handleChange = (field: keyof FormState, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
     if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+      setErrors(prev => ({ ...prev, [field]: "" }));
     }
   };
 
+  // ── Image helpers ─────────────────────────────────────────────────────────
   const uploadImage = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setErrors((prev) => ({ ...prev, imageUrl: "Please select a valid image file" }));
-      return;
-    }
-    if (file.size > IMAGE_CONFIG.maxSizeMB * 1024 * 1024) {
-      setErrors((prev) => ({ ...prev, imageUrl: `Image must be under ${IMAGE_CONFIG.maxSizeMB}MB` }));
-      return;
-    }
-
     setImageUploading(true);
-    setErrors((prev) => ({ ...prev, imageUrl: "" }));
-
+    setErrors(prev => ({ ...prev, imageUrl: "" }));
     try {
       const formData = new FormData();
       formData.append("image", file);
-
       const uploadRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/shopify/notify/upload-image`,
         { method: "POST", body: formData }
       );
       const uploadData = await uploadRes.json();
-
       if (uploadData.success && uploadData.url) {
-        setForm((prev) => ({ ...prev, imageUrl: uploadData.url }));
+        setForm(prev => ({ ...prev, imageUrl: uploadData.url }));
         setImagePreview(uploadData.url);
       } else {
-        setErrors((prev) => ({ ...prev, imageUrl: "Upload failed. Try again." }));
+        setErrors(prev => ({ ...prev, imageUrl: "Upload failed. Try again." }));
       }
     } catch {
-      setErrors((prev) => ({ ...prev, imageUrl: "Upload failed. Check your connection." }));
+      setErrors(prev => ({ ...prev, imageUrl: "Upload failed. Check your connection." }));
     } finally {
       setImageUploading(false);
     }
   };
 
+  const openCropper = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setErrors(prev => ({ ...prev, imageUrl: "Please select a valid image file" }));
+      return;
+    }
+    if (file.size > IMAGE_CONFIG.maxSizeMB * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, imageUrl: `Image must be under ${IMAGE_CONFIG.maxSizeMB}MB` }));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadImage(file);
+    if (file) { e.target.value = ''; openCropper(file); }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) uploadImage(file);
+    if (file) openCropper(file);
   };
 
   const removeImage = () => {
-    setForm((prev) => ({ ...prev, imageUrl: "" }));
+    setForm(prev => ({ ...prev, imageUrl: "" }));
     setImagePreview("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  // ── Device ID helpers ─────────────────────────────────────────────────────
+  const addDeviceId = () => {
+    const id = deviceInput.trim();
+    if (!id) return;
+    if (deviceIds.includes(id)) {
+      setErrors(prev => ({ ...prev, deviceIds: "This device ID is already added." }));
+      return;
+    }
+    setDeviceIds(prev => [...prev, id]);
+    setDeviceInput("");
+    setErrors(prev => ({ ...prev, deviceIds: "" }));
+  };
+
+  const removeDeviceId = (id: string) => setDeviceIds(prev => prev.filter(d => d !== id));
+
+  const handleDeviceKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") { e.preventDefault(); addDeviceId(); }
+  };
+
+  // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const newErrors: FormErrors = {};
     if (!form.title.trim()) newErrors.title = "Title is required";
     if (!form.body.trim()) newErrors.body = "Message is required";
     if (form.scheduleType === "later") {
-      const hrs = parseFloat(form.scheduleHours);
-      if (!form.scheduleHours || isNaN(hrs) || hrs <= 0)
-        newErrors.scheduleHours = "Enter a valid number of hours (e.g. 1.5)";
-      else if (hrs > 720)
-        newErrors.scheduleHours = "Max 720 hours (30 days)";
+      if (!form.scheduledAt) {
+        newErrors.scheduledAt = "Please pick a date & time";
+      } else if (new Date(form.scheduledAt) <= new Date()) {
+        newErrors.scheduledAt = "Scheduled time must be in the future";
+      }
+    }
+    if (form.targetType === "selected" && deviceIds.length === 0) {
+      newErrors.deviceIds = "Add at least one device ID";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!validate()) return;
 
     const isScheduled = form.scheduleType === "later";
-    const isRollout = form.rolloutPercent < 100;
-
-    const confirmText = isScheduled
-      ? `Will send to ${isRollout ? `${form.rolloutPercent}% of` : "all"} devices after ${form.scheduleHours} hour(s).`
-      : `This sends to ${isRollout ? `~${form.rolloutPercent}% of` : "all"} registered devices immediately.`;
+    const targetLabel = form.targetType === "selected"
+      ? `${deviceIds.length} selected device(s)`
+      : `all ${totalDevices ?? ''} devices`;
 
     const confirm = await Swal.fire({
       title: isScheduled ? "Schedule Notification?" : "Send Notification?",
-      text: confirmText,
+      text: isScheduled
+        ? `Will send to ${targetLabel} at ${new Date(form.scheduledAt).toLocaleString('en-IN')}.`
+        : `This sends to ${targetLabel} immediately.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
@@ -153,40 +321,48 @@ function BroadcastNotificationContent() {
       cancelButtonText: "Cancel",
       reverseButtons: true,
     });
-
     if (!confirm.isConfirmed) return;
 
     setLoading(true);
     try {
-      const payload: Record<string, unknown> = { title: form.title, body: form.body };
-      if (form.screen) payload.data = { screen: form.screen };
+      const payload: Record<string, unknown> = {
+        title: form.title,
+        body: form.body,
+        scheduledAt: isScheduled ? form.scheduledAt : new Date().toISOString(),
+        targetType: form.targetType,
+        targetDeviceIds: form.targetType === "selected" ? deviceIds : [],
+      };
+      if (form.screen) payload.screen = form.screen;
       if (form.imageUrl) payload.imageUrl = form.imageUrl;
-      if (isScheduled) payload.scheduleAfterHours = parseFloat(form.scheduleHours);
-      if (isRollout) payload.rolloutPercent = form.rolloutPercent;
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/shopify/notify/broadcast`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
       );
-
       const result = await response.json();
 
       if (result.success) {
+        // If send now, trigger immediately
+        if (!isScheduled && result.campaign?._id) {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/shopify/notify/broadcast/trigger/${result.campaign._id}`,
+            { method: "POST" }
+          );
+        }
+
         Swal.fire({
           icon: "success",
           title: isScheduled ? "Scheduled!" : "Sent!",
           text: isScheduled
-            ? `Scheduled to send after ${form.scheduleHours} hour(s)`
-            : `Sent to ${result.sent} of ${result.totalDevices} device(s)`,
+            ? `Scheduled for ${new Date(form.scheduledAt).toLocaleString('en-IN')}`
+            : "Notifications are being dispatched.",
           timer: 2500,
           showConfirmButton: false,
         });
-        setForm({ title: "", body: "", screen: "", imageUrl: "", scheduleType: "now", scheduleHours: "", rolloutPercent: 100 });
+
+        setForm({ title: "", body: "", screen: "", imageUrl: "", scheduleType: "now", scheduledAt: "", targetType: "all" });
         setImagePreview("");
+        setDeviceIds([]);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
         Swal.fire({ icon: "error", title: "Failed", text: result.message || "Something went wrong", confirmButtonColor: "#d33" });
@@ -198,20 +374,7 @@ function BroadcastNotificationContent() {
     }
   };
 
-  const scheduledTime =
-    form.scheduleType === "later" && form.scheduleHours && !isNaN(parseFloat(form.scheduleHours))
-      ? new Date(Date.now() + parseFloat(form.scheduleHours) * 3600000).toLocaleString("en-IN", {
-          dateStyle: "medium",
-          timeStyle: "short",
-        })
-      : null;
-
-  const rolloutColor =
-    form.rolloutPercent === 100
-      ? "text-green-700 bg-green-100"
-      : form.rolloutPercent >= 50
-      ? "text-orange-700 bg-orange-100"
-      : "text-red-700 bg-red-100";
+  const minDatetime = new Date(Date.now() + 60000).toISOString().slice(0, 16);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -219,7 +382,15 @@ function BroadcastNotificationContent() {
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-gray-900">Broadcast Notification</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Send push notifications to registered devices</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-gray-500">Send push notifications to registered devices</p>
+            {totalDevices !== null && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="text-xs font-medium text-green-600">{totalDevices.toLocaleString()} registered devices</span>
+              </>
+            )}
+          </div>
         </div>
         <button
           onClick={() => router.back()}
@@ -232,33 +403,28 @@ function BroadcastNotificationContent() {
       <div className="max-w-6xl mx-auto px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-          {/* ── LEFT: Form ───────────────────────────────────────────────── */}
+          {/* ── LEFT: Form ─────────────────────────────────────────────── */}
           <div className="lg:col-span-3 space-y-4">
 
             {/* Warning banner */}
             <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
               <span className="text-base leading-none mt-0.5">⚠️</span>
-              <span>Broadcasts to <strong>all registered devices</strong> unless you set a rollout. Double-check before sending.</span>
+              <span>Broadcasts to <strong>all registered devices</strong> unless you target specific devices. Double-check before sending.</span>
             </div>
 
-            {/* ── Content card ─────────────────────────────────────────── */}
+            {/* ── Content card ──────────────────────────────────────────── */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Content</p>
 
-              {/* Title */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  Title <span className="text-red-500">*</span>
-                </label>
+                <label className="text-sm font-medium text-gray-700">Title <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={form.title}
                   maxLength={65}
-                  onChange={(e) => handleChange("title", e.target.value)}
+                  onChange={e => handleChange("title", e.target.value)}
                   placeholder="e.g. Flash Sale 🔥"
-                  className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition ${
-                    errors.title ? "border-red-400 bg-red-50" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition ${errors.title ? "border-red-400 bg-red-50" : "border-gray-300"}`}
                 />
                 <div className="flex justify-between items-center">
                   {errors.title ? <p className="text-red-500 text-xs">{errors.title}</p> : <span />}
@@ -266,20 +432,15 @@ function BroadcastNotificationContent() {
                 </div>
               </div>
 
-              {/* Message */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  Message <span className="text-red-500">*</span>
-                </label>
+                <label className="text-sm font-medium text-gray-700">Message <span className="text-red-500">*</span></label>
                 <textarea
                   value={form.body}
                   maxLength={180}
-                  onChange={(e) => handleChange("body", e.target.value)}
+                  onChange={e => handleChange("body", e.target.value)}
                   rows={3}
                   placeholder="e.g. 50% off all gemstones today only!"
-                  className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent resize-none transition ${
-                    errors.body ? "border-red-400 bg-red-50" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent resize-none transition ${errors.body ? "border-red-400 bg-red-50" : "border-gray-300"}`}
                 />
                 <div className="flex justify-between items-center">
                   {errors.body ? <p className="text-red-500 text-xs">{errors.body}</p> : <span />}
@@ -288,32 +449,29 @@ function BroadcastNotificationContent() {
               </div>
             </div>
 
-            {/* ── Image card ───────────────────────────────────────────── */}
+            {/* ── Image card ────────────────────────────────────────────── */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Notification Image</p>
-                <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{IMAGE_CONFIG.label}</span>
+                <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">1024×512px · 2:1 · max {IMAGE_CONFIG.maxSizeMB}MB</span>
               </div>
 
-              {/* Drop zone */}
               {!imagePreview ? (
                 <div
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                  onDragOver={e => { e.preventDefault(); setDragOver(true); }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
                   className={`flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-                    dragOver
-                      ? "border-red-400 bg-red-50"
-                      : errors.imageUrl
-                      ? "border-red-300 bg-red-50"
-                      : "border-gray-200 bg-gray-50 hover:border-red-300 hover:bg-red-50/30"
+                    dragOver ? "border-red-400 bg-red-50"
+                    : errors.imageUrl ? "border-red-300 bg-red-50"
+                    : "border-gray-200 bg-gray-50 hover:border-red-300 hover:bg-red-50/30"
                   }`}
                 >
                   {imageUploading ? (
                     <div className="flex flex-col items-center gap-2">
                       <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-xs text-gray-500">Uploading to S3...</p>
+                      <p className="text-xs text-gray-500">Uploading...</p>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-1 pointer-events-none">
@@ -323,38 +481,35 @@ function BroadcastNotificationContent() {
                         </svg>
                       </div>
                       <p className="text-sm text-gray-600">Drop image or <span className="text-red-500 font-medium">browse</span></p>
-                      <p className="text-xs text-gray-400">PNG, JPG, WEBP · max {IMAGE_CONFIG.maxSizeMB}MB</p>
+                      <p className="text-xs text-gray-400">PNG, JPG, WEBP</p>
                     </div>
                   )}
                   <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleFileInput} disabled={imageUploading} />
                 </div>
               ) : (
                 <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100" style={{ aspectRatio: "2/1" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  <button
-                    onClick={removeImage}
-                    className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs transition"
-                  >✕</button>
+                  <button onClick={removeImage} className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs transition">✕</button>
                   <div className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">✓ Uploaded</div>
                 </div>
               )}
 
               {errors.imageUrl && <p className="text-red-500 text-xs">{errors.imageUrl}</p>}
 
-              {/* URL fallback */}
               <div className="space-y-1">
                 <label className="text-xs text-gray-400">Or paste image URL</label>
                 <input
                   type="text"
                   value={form.imageUrl}
-                  onChange={(e) => { handleChange("imageUrl", e.target.value); setImagePreview(e.target.value); }}
+                  onChange={e => { handleChange("imageUrl", e.target.value); setImagePreview(e.target.value); }}
                   placeholder="https://example.com/banner.jpg"
                   className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-gray-600"
                 />
               </div>
             </div>
 
-            {/* ── Delivery card ────────────────────────────────────────── */}
+            {/* ── Delivery card ─────────────────────────────────────────── */}
             <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Delivery</p>
 
@@ -365,68 +520,98 @@ function BroadcastNotificationContent() {
                 </label>
                 <select
                   value={form.screen}
-                  onChange={(e) => handleChange("screen", e.target.value)}
+                  onChange={e => handleChange("screen", e.target.value)}
                   className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
                 >
-                  {SCREENS.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
+                  {SCREENS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
                 <p className="text-xs text-gray-400">Tapping the notification opens this screen.</p>
               </div>
 
-              {/* Divider */}
               <div className="border-t border-gray-100" />
 
-              {/* Rollout slider */}
+              {/* Target type */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Rollout</label>
-                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full transition-colors ${rolloutColor}`}>
-                    {form.rolloutPercent === 100 ? "100% — All devices" : `${form.rolloutPercent}% of users`}
-                  </span>
+                <label className="text-sm font-medium text-gray-700">Send to</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["all", "selected"] as const).map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => { handleChange("targetType", val); if (val === "all") setErrors(p => ({ ...p, deviceIds: "" })); }}
+                      className={`py-2.5 rounded-lg border text-sm font-medium transition flex items-center justify-center gap-2 ${
+                        form.targetType === val
+                          ? "bg-red-500 text-white border-red-500 shadow-sm"
+                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                      }`}
+                    >
+                      {val === "all" ? (
+                        <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg> All devices</>
+                      ) : (
+                        <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18" /></svg> By device ID</>
+                      )}
+                    </button>
+                  ))}
                 </div>
 
-                <input
-                  type="range"
-                  min={1}
-                  max={100}
-                  step={1}
-                  value={form.rolloutPercent}
-                  onChange={(e) => handleChange("rolloutPercent", Number(e.target.value))}
-                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-red-500 bg-gray-200"
-                />
-
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>1%</span>
-                  <span className="text-gray-500 text-center">
-                    {form.rolloutPercent < 100
-                      ? "Random users will be selected"
-                      : "Send to everyone"}
-                  </span>
-                  <span>100%</span>
-                </div>
-
-                {form.rolloutPercent < 100 && (
-                  <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-700">
-                    <span>🎲</span>
-                    <span>~{form.rolloutPercent}% of total devices will be randomly selected</span>
+                {/* Device ID input */}
+                {form.targetType === "selected" && (
+                  <div className="rounded-lg border border-dashed border-indigo-200 bg-indigo-50 p-4 space-y-3">
+                    <label className="block text-sm font-medium text-indigo-800">Target Device IDs</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={deviceInput}
+                        onChange={e => { setDeviceInput(e.target.value); setErrors(p => ({ ...p, deviceIds: "" })); }}
+                        onKeyDown={handleDeviceKeyDown}
+                        placeholder="e.g. abc123-device-id"
+                        className="flex-1 px-3 py-2 rounded-lg border border-indigo-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={addDeviceId}
+                        className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {errors.deviceIds
+                      ? <p className="text-red-500 text-xs">{errors.deviceIds}</p>
+                      : <p className="text-indigo-500 text-xs">Press Enter or click Add after each device ID.</p>
+                    }
+                    {deviceIds.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {deviceIds.map(id => (
+                          <span key={id} className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full bg-indigo-100 border border-indigo-200 text-indigo-800 text-xs font-medium max-w-[200px]">
+                            <span className="truncate">{id}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeDeviceId(id)}
+                              className="w-4 h-4 flex items-center justify-center rounded-full bg-indigo-200 hover:bg-indigo-300 text-indigo-700 transition-colors flex-shrink-0"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-2 text-indigo-400 text-xs">No device IDs added yet</div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* Divider */}
               <div className="border-t border-gray-100" />
 
               {/* Schedule */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-700">Send Time</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(["now", "later"] as const).map((type) => (
+                  {(["now", "later"] as const).map(type => (
                     <button
                       key={type}
                       type="button"
-                      onClick={() => handleChange("scheduleType", type)}
+                      onClick={() => { handleChange("scheduleType", type); setErrors(p => ({ ...p, scheduledAt: "" })); }}
                       className={`py-2.5 rounded-lg border text-sm font-medium transition ${
                         form.scheduleType === type
                           ? "bg-red-500 text-white border-red-500 shadow-sm"
@@ -440,26 +625,20 @@ function BroadcastNotificationContent() {
 
                 {form.scheduleType === "later" && (
                   <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 space-y-2">
-                    <label className="text-sm font-medium text-orange-800">Hours from now</label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="number"
-                        min="0.5"
-                        max="720"
-                        step="0.5"
-                        value={form.scheduleHours}
-                        onChange={(e) => handleChange("scheduleHours", e.target.value)}
-                        placeholder="e.g. 2.5"
-                        className={`w-32 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${
-                          errors.scheduleHours ? "border-red-400" : "border-orange-200"
-                        }`}
-                      />
-                      <span className="text-sm text-gray-500">hours</span>
-                    </div>
-                    {scheduledTime && (
-                      <p className="text-xs text-orange-700">📅 Sends at <strong>{scheduledTime}</strong></p>
+                    <label className="text-sm font-medium text-orange-800">Pick date &amp; time</label>
+                    <input
+                      type="datetime-local"
+                      value={form.scheduledAt}
+                      min={minDatetime}
+                      onChange={e => { handleChange("scheduledAt", e.target.value); }}
+                      className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${errors.scheduledAt ? "border-red-400" : "border-orange-200"}`}
+                    />
+                    {form.scheduledAt && !errors.scheduledAt && (
+                      <p className="text-xs text-orange-700">
+                        📅 Sends at <strong>{new Date(form.scheduledAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</strong>
+                      </p>
                     )}
-                    {errors.scheduleHours && <p className="text-red-500 text-xs">{errors.scheduleHours}</p>}
+                    {errors.scheduledAt && <p className="text-red-500 text-xs">{errors.scheduledAt}</p>}
                   </div>
                 )}
               </div>
@@ -472,26 +651,24 @@ function BroadcastNotificationContent() {
               className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 shadow-sm"
             >
               {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {form.scheduleType === "later" ? "Scheduling..." : "Sending..."}
-                </>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {form.scheduleType === "later" ? "Scheduling..." : "Sending..."}</>
               ) : form.scheduleType === "later"
                 ? "🕒 Schedule Notification"
-                : form.rolloutPercent < 100
-                ? `🚀 Send to ${form.rolloutPercent}% of Devices`
-                : "🚀 Send to All Devices"}
+                : form.targetType === "selected"
+                ? `🚀 Send to ${deviceIds.length} Device(s)`
+                : `🚀 Send to All ${totalDevices ? `(${totalDevices})` : ''} Devices`
+              }
             </button>
           </div>
 
-          {/* ── RIGHT: Live Preview ──────────────────────────────────────── */}
+          {/* ── RIGHT: Live Preview ────────────────────────────────────── */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-6 space-y-4">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Live Preview</p>
 
               {/* Android mockup */}
               <div className="bg-gray-900 rounded-2xl p-4 space-y-3">
-                {/* Status bar */}
                 <div className="flex justify-between items-center px-1">
                   <span className="text-white text-xs font-medium">9:41</span>
                   <div className="flex items-center gap-1.5">
@@ -507,16 +684,11 @@ function BroadcastNotificationContent() {
                   </div>
                 </div>
 
-                {/* Notification card */}
                 <div className="bg-white/[0.12] rounded-xl overflow-hidden">
                   {imagePreview ? (
                     <div className="w-full overflow-hidden" style={{ aspectRatio: "2/1" }}>
-                      <img
-                        src={imagePreview}
-                        alt="banner"
-                        className="w-full h-full object-cover"
-                        onError={() => setImagePreview("")}
-                      />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imagePreview} alt="banner" className="w-full h-full object-cover" onError={() => setImagePreview("")} />
                     </div>
                   ) : (
                     <div className="w-full flex items-center justify-center bg-white/5" style={{ aspectRatio: "2/1" }}>
@@ -550,16 +722,16 @@ function BroadcastNotificationContent() {
                     <span>Opens <strong>{SCREENS.find(s => s.value === form.screen)?.label}</strong></span>
                   </div>
                 )}
-                {form.rolloutPercent < 100 && (
-                  <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
-                    <span>🎲</span>
-                    <span>Rollout: <strong>{form.rolloutPercent}%</strong> of devices</span>
+                {form.targetType === "selected" && deviceIds.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 rounded-lg px-3 py-2">
+                    <span>🎯</span>
+                    <span>Targeting <strong>{deviceIds.length}</strong> specific device(s)</span>
                   </div>
                 )}
-                {form.scheduleType === "later" && scheduledTime && (
+                {form.scheduleType === "later" && form.scheduledAt && (
                   <div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 rounded-lg px-3 py-2">
                     <span>🕒</span>
-                    <span>Scheduled: <strong>{scheduledTime}</strong></span>
+                    <span>Scheduled: <strong>{new Date(form.scheduledAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</strong></span>
                   </div>
                 )}
                 {form.imageUrl && (
@@ -578,11 +750,10 @@ function BroadcastNotificationContent() {
                   { label: "Message", done: !!form.body.trim(), optional: false },
                   { label: "Image", done: !!form.imageUrl, optional: true },
                   { label: "Deep link", done: !!form.screen, optional: true },
-                ].map((item) => (
+                  { label: form.targetType === "selected" ? "Device IDs" : "Target", done: form.targetType === "all" || deviceIds.length > 0, optional: false },
+                ].map(item => (
                   <div key={item.label} className="flex items-center gap-2.5 text-xs">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      item.done ? "bg-green-500" : item.optional ? "bg-gray-100" : "bg-red-100"
-                    }`}>
+                    <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? "bg-green-500" : item.optional ? "bg-gray-100" : "bg-red-100"}`}>
                       {item.done ? (
                         <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -592,8 +763,7 @@ function BroadcastNotificationContent() {
                       )}
                     </div>
                     <span className={item.done ? "text-gray-700 font-medium" : item.optional ? "text-gray-400" : "text-gray-500"}>
-                      {item.label}
-                      {item.optional && !item.done && <span className="text-gray-300 ml-1">(optional)</span>}
+                      {item.label}{item.optional && !item.done && <span className="text-gray-300 ml-1">(optional)</span>}
                     </span>
                   </div>
                 ))}
@@ -603,6 +773,15 @@ function BroadcastNotificationContent() {
 
         </div>
       </div>
+
+      {/* Crop Modal */}
+      {cropSrc && (
+        <CropModal
+          imgSrc={cropSrc}
+          onConfirm={file => { setCropSrc(''); uploadImage(file); }}
+          onCancel={() => setCropSrc('')}
+        />
+      )}
     </div>
   );
 }
