@@ -4,7 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import moment from 'moment';
 import Swal from 'sweetalert2';
 import { Tooltip } from '@mui/material';
-
+import ReactCrop, {
+  centerCrop,
+  makeAspectCrop,
+  type Crop,
+  type PixelCrop,
+} from 'react-image-crop';
 interface Campaign {
   _id: string;
   title: string;
@@ -108,6 +113,134 @@ const TrashSvg = () => (
   </svg>
 );
 
+const NOTIF_ASPECT = 2 / 1;
+const NOTIF_OUTPUT = { w: 1024, h: 512 };
+
+function makeCenteredCrop(mediaW: number, mediaH: number, aspect: number): Crop {
+  return centerCrop(
+    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaW, mediaH),
+    mediaW,
+    mediaH
+  );
+}
+
+async function getCroppedFile(
+  imgEl: HTMLImageElement,
+  pixelCrop: PixelCrop,
+  outputW: number,
+  outputH: number,
+  fileName: string
+): Promise<File | null> {
+  const canvas = document.createElement('canvas');
+  canvas.width = outputW;
+  canvas.height = outputH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const scaleX = imgEl.naturalWidth / imgEl.width;
+  const scaleY = imgEl.naturalHeight / imgEl.height;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(
+    imgEl,
+    pixelCrop.x * scaleX, pixelCrop.y * scaleY,
+    pixelCrop.width * scaleX, pixelCrop.height * scaleY,
+    0, 0, outputW, outputH
+  );
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob ? new File([blob], fileName, { type: 'image/jpeg' }) : null),
+      'image/jpeg', 0.92
+    );
+  });
+}
+
+interface CropModalProps {
+  imgSrc: string;
+  onConfirm: (file: File) => void;
+  onCancel: () => void;
+}
+
+const CropModal: React.FC<CropModalProps> = ({ imgSrc, onConfirm, onCancel }) => {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+
+  const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    setCrop(makeCenteredCrop(width, height, NOTIF_ASPECT));
+  };
+
+  const handleConfirm = async () => {
+    if (!imgRef.current || !completedCrop || completedCrop.width === 0) return;
+    const file = await getCroppedFile(
+      imgRef.current, completedCrop,
+      NOTIF_OUTPUT.w, NOTIF_OUTPUT.h,
+      `notif-${Date.now()}.jpg`
+    );
+    if (file) onConfirm(file);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-800">Crop Image</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Notification banner · 2:1 ratio (1024×512px output)
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex justify-center max-h-[55vh] overflow-auto rounded-lg bg-gray-50 border border-gray-200">
+          <ReactCrop
+            crop={crop}
+            onChange={(_, pct) => setCrop(pct)}
+            onComplete={(c) => setCompletedCrop(c)}
+            aspect={NOTIF_ASPECT}
+            keepSelection
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef}
+              src={imgSrc}
+              alt="Crop source"
+              onLoad={onImageLoad}
+              style={{ maxHeight: '55vh' }}
+            />
+          </ReactCrop>
+        </div>
+
+        <div className="flex gap-3 mt-5">
+          <button
+            type="button"
+            onClick={handleConfirm}
+            className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+          >
+            Crop &amp; Use
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export default function NotificationCampaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,6 +252,7 @@ export default function NotificationCampaigns() {
   const [showForm, setShowForm] = useState(true);
   const [eligibleCount, setEligibleCount] = useState<number | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [cropSrc, setCropSrc] = useState('');
 
   // Image upload state
   const [imagePreview, setImagePreview] = useState('');
@@ -226,18 +360,42 @@ export default function NotificationCampaigns() {
     }
   };
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // REPLACE the existing handleFileInput
+    const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadImage(file);
-  };
+    if (!file) return;
+    e.target.value = '';
+    if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, imageUrl: 'Please select a valid image file.' }));
+        return;
+    }
+    if (file.size > IMAGE_MAX_MB * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, imageUrl: `Image must be under ${IMAGE_MAX_MB}MB.` }));
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    };
 
-  const handleDrop = (e: React.DragEvent) => {
+    // REPLACE the existing handleDrop
+    const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) uploadImage(file);
-  };
-
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, imageUrl: 'Please select a valid image file.' }));
+        return;
+    }
+    if (file.size > IMAGE_MAX_MB * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, imageUrl: `Image must be under ${IMAGE_MAX_MB}MB.` }));
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    };
   const removeImage = () => {
     setForm(prev => ({ ...prev, imageUrl: '' }));
     setImagePreview('');
@@ -863,6 +1021,16 @@ export default function NotificationCampaigns() {
           </div>
         )}
       </div>
+        {cropSrc && (
+        <CropModal
+            imgSrc={cropSrc}
+            onConfirm={(file) => {
+            setCropSrc('');
+            uploadImage(file);
+            }}
+            onCancel={() => setCropSrc('')}
+        />
+        )}
     </div>
   );
 }
