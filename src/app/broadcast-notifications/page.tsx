@@ -151,6 +151,8 @@ interface FormState {
   screen: string;
   imageUrl: string;
   scheduleType: "now" | "later";
+  externalUrl: string;     
+  linkType: "screen" | "external"; // ← new, replaces relying on screen alone
   scheduledAt: string;
   targetType: "all" | "selected";
 }
@@ -161,6 +163,7 @@ interface FormErrors {
   imageUrl?: string;
   scheduledAt?: string;
   deviceIds?: string;
+  externalUrl?: string; // ← new
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
@@ -172,6 +175,8 @@ function BroadcastNotificationContent() {
     title: "",
     body: "",
     screen: "",
+    externalUrl: "",
+    linkType: "screen",
     imageUrl: "",
     scheduleType: "now",
     scheduledAt: "",
@@ -281,24 +286,35 @@ function BroadcastNotificationContent() {
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
-  const validate = () => {
-    const newErrors: FormErrors = {};
-    if (!form.title.trim()) newErrors.title = "Title is required";
-    if (!form.body.trim()) newErrors.body = "Message is required";
-    if (form.scheduleType === "later") {
-      if (!form.scheduledAt) {
-        newErrors.scheduledAt = "Please pick a date & time";
-      } else if (new Date(form.scheduledAt) <= new Date()) {
-        newErrors.scheduledAt = "Scheduled time must be in the future";
+const validate = () => {
+  const newErrors: FormErrors = {};
+  if (!form.title.trim()) newErrors.title = "Title is required";
+  if (!form.body.trim()) newErrors.body = "Message is required";
+  if (form.scheduleType === "later") {
+    if (!form.scheduledAt) {
+      newErrors.scheduledAt = "Please pick a date & time";
+    } else if (new Date(form.scheduledAt) <= new Date()) {
+      newErrors.scheduledAt = "Scheduled time must be in the future";
+    }
+  }
+  if (form.targetType === "selected" && deviceIds.length === 0) {
+    newErrors.deviceIds = "Add at least one device ID";
+  }
+  if (form.linkType === "external") {
+    if (!form.externalUrl.trim()) {
+      newErrors.externalUrl = "Enter a URL";
+    } else {
+      try {
+        const parsed = new URL(form.externalUrl.trim());
+        if (!["http:", "https:"].includes(parsed.protocol)) throw new Error();
+      } catch {
+        newErrors.externalUrl = "Enter a valid http(s) URL";
       }
     }
-    if (form.targetType === "selected" && deviceIds.length === 0) {
-      newErrors.deviceIds = "Add at least one device ID";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
+  }
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!validate()) return;
@@ -325,6 +341,7 @@ function BroadcastNotificationContent() {
 
     setLoading(true);
     try {
+      
       const payload: Record<string, unknown> = {
         title: form.title,
         body: form.body,
@@ -332,9 +349,9 @@ function BroadcastNotificationContent() {
         targetType: form.targetType,
         targetDeviceIds: form.targetType === "selected" ? deviceIds : [],
       };
-      if (form.screen) payload.screen = form.screen;
+      if (form.linkType === "screen" && form.screen) payload.screen = form.screen;
+      if (form.linkType === "external" && form.externalUrl.trim()) payload.externalUrl = form.externalUrl.trim();
       if (form.imageUrl) payload.imageUrl = form.imageUrl;
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/shopify/notify/broadcast`,
         { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
@@ -360,7 +377,7 @@ function BroadcastNotificationContent() {
           showConfirmButton: false,
         });
 
-        setForm({ title: "", body: "", screen: "", imageUrl: "", scheduleType: "now", scheduledAt: "", targetType: "all" });
+        setForm({ title: "", body: "", screen: "", externalUrl: "", linkType: "screen", imageUrl: "", scheduleType: "now", scheduledAt: "", targetType: "all" });
         setImagePreview("");
         setDeviceIds([]);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -522,20 +539,58 @@ function BroadcastNotificationContent() {
             <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
               <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Delivery</p>
 
-              {/* Deep link */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">
-                  Deep Link Screen <span className="text-xs text-gray-400 font-normal">(optional)</span>
-                </label>
-                <select
-                  value={form.screen}
-                  onChange={e => handleChange("screen", e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
-                >
-                  {SCREENS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
-                <p className="text-xs text-gray-400">Tapping the notification opens this screen.</p>
-              </div>
+              {/* Link / redirect */}
+<div className="space-y-2">
+  <label className="text-sm font-medium text-gray-700">
+    Tap Action <span className="text-xs text-gray-400 font-normal">(optional)</span>
+  </label>
+  <div className="grid grid-cols-2 gap-2">
+    {(["screen", "external"] as const).map(type => (
+      <button
+        key={type}
+        type="button"
+        onClick={() => handleChange("linkType", type)}
+        className={`py-2 rounded-lg border text-xs font-medium transition ${
+          form.linkType === type
+            ? "bg-red-500 text-white border-red-500 shadow-sm"
+            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        }`}
+      >
+        { type === "screen" ? "In-App Screen" : "External Link"}
+      </button>
+    ))}
+  </div>
+
+  {form.linkType === "screen" && (
+    <select
+      value={form.screen}
+      onChange={e => handleChange("screen", e.target.value)}
+      className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 bg-white"
+    >
+      {SCREENS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+    </select>
+  )}
+
+  {form.linkType === "external" && (
+    <div className="space-y-1">
+      <input
+        type="text"
+        value={form.externalUrl}
+        onChange={e => handleChange("externalUrl", e.target.value)}
+        placeholder="https://example.com/promo"
+        className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 ${
+          errors.externalUrl ? "border-red-400 bg-red-50" : "border-gray-300"
+        }`}
+      />
+      {errors.externalUrl && <p className="text-red-500 text-xs">{errors.externalUrl}</p>}
+    </div>
+  )}
+
+  <p className="text-xs text-gray-400">
+    {form.linkType === "screen" && "Tapping the notification opens this in-app screen."}
+    {form.linkType === "external" && "Tapping the notification opens this link in the in-app browser."}
+  </p>
+</div>
 
               <div className="border-t border-gray-100" />
 
@@ -705,7 +760,9 @@ function BroadcastNotificationContent() {
                     </div>
                   )}
                   <div className="p-3 flex gap-2.5 items-start">
-                    <div className="w-7 h-7 bg-red-500 rounded-lg flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">L</div>
+                    <div className="w-7 h-7 bg-slate-500 rounded-lg flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                      <img src="/image.png" alt="life changing astro" className=" w-7 h-7" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-xs font-semibold leading-tight truncate">
                         {form.title || "Notification title"}
@@ -725,10 +782,16 @@ function BroadcastNotificationContent() {
 
               {/* Status chips */}
               <div className="space-y-2">
-                {form.screen && (
+                {form.linkType === "screen" && form.screen && (
                   <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
                     <span>🔗</span>
                     <span>Opens <strong>{SCREENS.find(s => s.value === form.screen)?.label}</strong></span>
+                  </div>
+                )}
+                {form.linkType === "external" && form.externalUrl && (
+                  <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+                    <span>🌐</span>
+                    <span>Opens external link</span>
                   </div>
                 )}
                 {form.targetType === "selected" && deviceIds.length > 0 && (
@@ -758,7 +821,10 @@ function BroadcastNotificationContent() {
                   { label: "Title", done: !!form.title.trim(), optional: false },
                   { label: "Message", done: !!form.body.trim(), optional: false },
                   { label: "Image", done: !!form.imageUrl, optional: true },
-                  { label: "Deep link", done: !!form.screen, optional: true },
+                  { label: "Link",
+                    done: (form.linkType === "screen" ? !!form.screen : !!form.externalUrl),
+                    optional: true,
+                  },
                   { label: form.targetType === "selected" ? "Device IDs" : "Target", done: form.targetType === "all" || deviceIds.length > 0, optional: false },
                 ].map(item => (
                   <div key={item.label} className="flex items-center gap-2.5 text-xs">
