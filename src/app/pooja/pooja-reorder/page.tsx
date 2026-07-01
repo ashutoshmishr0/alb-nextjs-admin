@@ -200,7 +200,7 @@ const ReorderPujaPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className=" mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div>
